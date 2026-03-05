@@ -1,0 +1,131 @@
+"""膨張 (dilation) モデルのテスト.
+
+テスト設計の詳細は TEST_DESIGN.md を参照.
+3×3 / 5×5 の全バリアントをテストする.
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import cv2
+import numpy as np
+import onnxruntime as ort
+import pytest
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+CATEGORY = Path(__file__).resolve().parent.name
+MODEL_DIR = PROJECT_ROOT / "models" / CATEGORY
+
+KERNEL_SIZES = [3, 5]
+
+
+@pytest.fixture(scope="module", autouse=True)
+def ensure_models():
+    """モデルファイルが無ければ export_all.py を実行して生成する."""
+    missing = any(
+        not (MODEL_DIR / f"dilate_{k}x{k}.onnx").exists() for k in KERNEL_SIZES
+    )
+    if missing:
+        subprocess.check_call(
+            [sys.executable, str(PROJECT_ROOT / "src" / "export_all.py")],
+            cwd=str(PROJECT_ROOT),
+        )
+
+
+@pytest.fixture(scope="module", params=KERNEL_SIZES, ids=[f"sess_{k}x{k}" for k in KERNEL_SIZES])
+def session_and_k(request):
+    """(session, kernel_size) のタプルを返す."""
+    k = request.param
+    sess = ort.InferenceSession(str(MODEL_DIR / f"dilate_{k}x{k}.onnx"))
+    return sess, k
+
+
+def _run(session, img: np.ndarray) -> np.ndarray:
+    return session.run(None, {"input": img})[0]
+
+
+class TestDilateOutputShape:
+    """出力テンソルの形状を検証するテスト群."""
+
+    def test_single_image(self, session_and_k):
+        sess, k = session_and_k
+        img = np.random.rand(1, 3, 8, 8).astype(np.float32)
+        out = _run(sess, img)
+        assert out.shape == (1, 3, 8, 8)
+
+    def test_batch(self, session_and_k):
+        sess, k = session_and_k
+        img = np.random.rand(2, 3, 8, 8).astype(np.float32)
+        out = _run(sess, img)
+        assert out.shape == (2, 3, 8, 8)
+
+
+class TestDilateValues:
+    """出力値の正確性を検証するテスト群."""
+
+    def test_uniform_image_unchanged(self, session_and_k):
+        """均一画像は膨張後も変化しないこと."""
+        sess, k = session_and_k
+        img = np.full((1, 3, 16, 16), 0.5, dtype=np.float32)
+        out = _run(sess, img)
+        np.testing.assert_allclose(out, img, atol=1e-5)
+
+    def test_all_black(self, session_and_k):
+        """全黒画像の膨張結果が全黒であること."""
+        sess, k = session_and_k
+        img = np.zeros((1, 3, 8, 8), dtype=np.float32)
+        out = _run(sess, img)
+        np.testing.assert_array_equal(out, img)
+
+    def test_all_white(self, session_and_k):
+        """全白画像の膨張結果が全白であること."""
+        sess, k = session_and_k
+        img = np.ones((1, 3, 8, 8), dtype=np.float32)
+        out = _run(sess, img)
+        np.testing.assert_allclose(out, img, atol=1e-5)
+
+    def test_dilate_expands_bright(self, session_and_k):
+        """明るいピクセルが周囲に拡大すること."""
+        sess, k = session_and_k
+        img = np.zeros((1, 3, 16, 16), dtype=np.float32)
+        img[:, :, 8, 8] = 1.0  # 中央に1ピクセルの白点
+        out = _run(sess, img)
+        # 膨張後、中央周囲のカーネル範囲が 1.0 になる
+        pad = k // 2
+        for ch in range(3):
+            assert out[0, ch, 8, 8] == 1.0
+            assert out[0, ch, 8 - pad, 8] == 1.0
+            assert out[0, ch, 8, 8 + pad] == 1.0
+        # カーネル外はゼロのまま
+        if 8 + pad + 1 < 16:
+            assert out[0, 0, 8, 8 + pad + 1] == 0.0
+
+    def test_output_ge_input(self, session_and_k):
+        """膨張は常に入力以上の値を返すこと."""
+        sess, k = session_and_k
+        rng = np.random.default_rng(42)
+        img = rng.random((1, 3, 16, 16), dtype=np.float32)
+        out = _run(sess, img)
+        assert (out >= img - 1e-6).all()
+
+
+class TestDilateVsOpenCV:
+    """OpenCV の dilate との比較テスト群."""
+
+    def test_matches_opencv(self, session_and_k):
+        """ランダム画像で OpenCV dilate との一致を検証 (uint8 ±1 許容)."""
+        sess, k = session_and_k
+        rng = np.random.default_rng(123)
+        img_nchw = rng.random((1, 3, 32, 32), dtype=np.float32)
+
+        onnx_out = _run(sess, img_nchw)
+        onnx_uint8 = (onnx_out[0].transpose(1, 2, 0) * 255.0).clip(0, 255).round().astype(np.uint8)
+
+        # OpenCV: uint8 HWC で dilate
+        hwc_u8 = (img_nchw[0].transpose(1, 2, 0) * 255.0).clip(0, 255).round().astype(np.uint8)
+        kernel = np.ones((k, k), dtype=np.uint8)
+        cv_out = cv2.dilate(hwc_u8, kernel)
+
+        diff = np.abs(onnx_uint8.astype(np.int16) - cv_out.astype(np.int16))
+        assert diff.max() <= 1, f"最大誤差 {diff.max()} > 1 (kernel={k}x{k})"

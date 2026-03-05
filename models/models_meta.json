@@ -1,0 +1,764 @@
+{
+  "categories": [
+    {
+      "id": "01_elementwise",
+      "label_ja": "ピクセル単位演算",
+      "label_en": "Element-wise",
+      "models": [
+        "grayscale",
+        "binarize",
+        "brightness",
+        "contrast",
+        "gamma",
+        "levels",
+        "invert",
+        "solarize",
+        "posterize",
+        "saturation",
+        "exposure",
+        "auto_levels"
+      ]
+    },
+    {
+      "id": "02_color_space",
+      "label_ja": "色空間変換",
+      "label_en": "Color Space",
+      "models": [
+        "sepia",
+        "rgb2bgr",
+        "color_temperature",
+        "colormap_jet",
+        "colormap_turbo",
+        "colormap_inferno",
+        "colormap_viridis",
+        "channel_r",
+        "channel_g",
+        "channel_b",
+        "hsv_h",
+        "hsv_s",
+        "hsv_v",
+        "hsv_range",
+        "color_suppress",
+        "wb_gain",
+        "wb_gray_world",
+        "wb_white_patch"
+      ]
+    },
+    {
+      "id": "03_conv_filter",
+      "label_ja": "畳み込みフィルタ",
+      "label_en": "Conv Filters",
+      "models": [
+        "blur_3x3",
+        "blur_5x5",
+        "blur_7x7",
+        "gaussian_blur_3x3",
+        "gaussian_blur_5x5",
+        "gaussian_blur_7x7",
+        "sharpen",
+        "emboss",
+        "sobel",
+        "scharr",
+        "laplacian",
+        "prewitt",
+        "unsharp_mask_3x3",
+        "unsharp_mask_5x5",
+        "unsharp_mask_7x7",
+        "edge_magnitude",
+        "log_5x5",
+        "log_7x7",
+        "bg_normalize_3x3",
+        "bg_normalize_5x5",
+        "bg_normalize_7x7",
+        "dog_3x3_5x5",
+        "dog_3x3_7x7",
+        "dog_5x5_7x7"
+      ]
+    },
+    {
+      "id": "04_morphology",
+      "label_ja": "モルフォロジー演算",
+      "label_en": "Morphology",
+      "models": [
+        "dilate_3x3",
+        "dilate_5x5",
+        "erode_3x3",
+        "erode_5x5",
+        "opening_3x3",
+        "opening_5x5",
+        "closing_3x3",
+        "closing_5x5",
+        "gradient_3x3",
+        "gradient_5x5",
+        "tophat_3x3",
+        "tophat_5x5",
+        "blackhat_3x3",
+        "blackhat_5x5",
+        "hitmiss_3x3"
+      ]
+    },
+    {
+      "id": "05_geometric",
+      "label_ja": "幾何変換",
+      "label_en": "Geometric",
+      "models": [
+        "resize",
+        "resize_to",
+        "hflip",
+        "vflip",
+        "hvflip",
+        "rotate_90",
+        "rotate_180",
+        "rotate_270",
+        "rotate_arbitrary",
+        "crop",
+        "center_crop",
+        "padding_reflect",
+        "padding_color",
+        "pyr_down",
+        "pyr_up",
+        "affine",
+        "perspective"
+      ]
+    },
+    {
+      "id": "06_normalization",
+      "label_ja": "正規化・統計",
+      "label_en": "Normalization",
+      "models": [
+        "minmax_norm",
+        "l2_norm",
+        "l1_norm",
+        "l2_norm_ch",
+        "l1_norm_ch"
+      ]
+    },
+    {
+      "id": "08_threshold",
+      "label_ja": "閾値処理",
+      "label_en": "Threshold",
+      "models": [
+        "inv_binarize",
+        "thresh_trunc",
+        "thresh_tozero",
+        "thresh_tozero_inv",
+        "adaptive_thresh_mean_3x3",
+        "adaptive_thresh_mean_5x5",
+        "adaptive_thresh_mean_7x7",
+        "adaptive_thresh_gaussian_3x3",
+        "adaptive_thresh_gaussian_5x5",
+        "adaptive_thresh_gaussian_7x7",
+        "inrange"
+      ]
+    },
+    {
+      "id": "09_feature",
+      "label_ja": "特徴量・コーナー検出",
+      "label_en": "Feature Detection",
+      "models": [
+        "harris_corner_3x3",
+        "harris_corner_5x5",
+        "shi_tomasi_3x3",
+        "shi_tomasi_5x5",
+        "line_extract_h_15",
+        "line_extract_v_15"
+      ]
+    },
+    {
+      "id": "10_ml_preprocess",
+      "label_ja": "ML 前処理",
+      "label_en": "ML Preprocessing",
+      "models": [
+        "scale_to_255",
+        "scale_from_255",
+        "normalize_neg1_pos1",
+        "imagenet_norm",
+        "channel_mean_sub",
+        "pixel_mean_sub",
+        "hwc_to_chw",
+        "chw_to_hwc",
+        "batch_unsqueeze",
+        "batch_squeeze",
+        "float_to_uint8",
+        "uint8_to_float",
+        "letterbox"
+      ],
+      "hidden": true
+    },
+    {
+      "id": "07_blend",
+      "label_ja": "ブレンド・合成",
+      "label_en": "Blend / Composite",
+      "models": [
+        "weighted_add",
+        "alpha_blend",
+        "mask_composite",
+        "overlay"
+      ],
+      "hidden": true
+    }
+  ],
+  "params": {
+    "auto_levels": {},
+    "binarize": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "brightness": {
+      "brightness": [
+        -1.0,
+        1.0,
+        0.0
+      ]
+    },
+    "contrast": {
+      "contrast": [
+        0.0,
+        3.0,
+        1.0
+      ],
+      "center": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "exposure": {
+      "exposure": [
+        0.0,
+        5.0,
+        1.0
+      ]
+    },
+    "gamma": {
+      "gamma": [
+        0.1,
+        5.0,
+        1.0
+      ]
+    },
+    "grayscale": {},
+    "levels": {
+      "in_black": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "in_white": [
+        0.0,
+        1.0,
+        1.0
+      ],
+      "gamma": [
+        0.2,
+        5.0,
+        1.0
+      ],
+      "out_black": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "out_white": [
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "invert": {},
+    "posterize": {
+      "levels": [
+        2.0,
+        32.0,
+        4.0
+      ]
+    },
+    "saturation": {
+      "saturation": [
+        0.0,
+        3.0,
+        1.0
+      ]
+    },
+    "solarize": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "channel_r": {},
+    "channel_g": {},
+    "channel_b": {},
+    "color_suppress": {
+      "h_center": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "h_range": [
+        0.0,
+        0.5,
+        0.08
+      ],
+      "s_min": [
+        0.0,
+        1.0,
+        0.3
+      ],
+      "strength": [
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "color_temperature": {
+      "temperature": [
+        -0.5,
+        0.5,
+        0.0
+      ]
+    },
+    "colormap_jet": {},
+    "colormap_turbo": {},
+    "colormap_inferno": {},
+    "colormap_viridis": {},
+    "hsv_h": {},
+    "hsv_s": {},
+    "hsv_v": {},
+    "hsv_range": {
+      "h_min": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "h_max": [
+        0.0,
+        1.0,
+        1.0
+      ],
+      "s_min": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "s_max": [
+        0.0,
+        1.0,
+        1.0
+      ],
+      "v_min": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "v_max": [
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "rgb2bgr": {},
+    "sepia": {},
+    "wb_gain": {
+      "r_gain": [
+        0.0,
+        3.0,
+        1.0
+      ],
+      "g_gain": [
+        0.0,
+        3.0,
+        1.0
+      ],
+      "b_gain": [
+        0.0,
+        3.0,
+        1.0
+      ]
+    },
+    "wb_gray_world": {},
+    "wb_white_patch": {},
+    "gaussian_blur_3x3": {},
+    "gaussian_blur_5x5": {},
+    "gaussian_blur_7x7": {},
+    "bg_normalize_3x3": {},
+    "bg_normalize_5x5": {},
+    "bg_normalize_7x7": {},
+    "blur_3x3": {},
+    "blur_5x5": {},
+    "blur_7x7": {},
+    "dog_3x3_5x5": {},
+    "dog_3x3_7x7": {},
+    "dog_5x5_7x7": {},
+    "edge_magnitude": {},
+    "emboss": {},
+    "laplacian": {},
+    "log_5x5": {},
+    "log_7x7": {},
+    "prewitt": {},
+    "scharr": {},
+    "sharpen": {},
+    "sobel": {},
+    "unsharp_mask_3x3": {
+      "amount": [
+        0.0,
+        5.0,
+        1.0
+      ]
+    },
+    "unsharp_mask_5x5": {
+      "amount": [
+        0.0,
+        5.0,
+        1.0
+      ]
+    },
+    "unsharp_mask_7x7": {
+      "amount": [
+        0.0,
+        5.0,
+        1.0
+      ]
+    },
+    "blackhat_3x3": {},
+    "blackhat_5x5": {},
+    "closing_3x3": {},
+    "closing_5x5": {},
+    "dilate_3x3": {},
+    "dilate_5x5": {},
+    "erode_3x3": {},
+    "erode_5x5": {},
+    "gradient_3x3": {},
+    "gradient_5x5": {},
+    "hitmiss_3x3": {},
+    "opening_3x3": {},
+    "opening_5x5": {},
+    "tophat_3x3": {},
+    "tophat_5x5": {},
+    "center_crop": {
+      "crop_ratio": [
+        0.1,
+        1.0,
+        0.5
+      ]
+    },
+    "crop": {
+      "crop_top": [
+        0.0,
+        0.9,
+        0.0
+      ],
+      "crop_left": [
+        0.0,
+        0.9,
+        0.0
+      ],
+      "crop_h": [
+        0.1,
+        1.0,
+        1.0
+      ],
+      "crop_w": [
+        0.1,
+        1.0,
+        1.0
+      ]
+    },
+    "hflip": {},
+    "vflip": {},
+    "hvflip": {},
+    "padding_reflect": {
+      "pad_ratio": [
+        0.0,
+        0.5,
+        0.1
+      ]
+    },
+    "padding_color": {
+      "pad_ratio": [
+        0.0,
+        0.5,
+        0.1
+      ],
+      "pad_r": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "pad_g": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "pad_b": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    "pyr_down": {},
+    "pyr_up": {},
+    "resize": {
+      "scale": [
+        0.1,
+        4.0,
+        1.0
+      ]
+    },
+    "resize_to": {
+      "target_h": [
+        1.0,
+        4096.0,
+        256.0
+      ],
+      "target_w": [
+        1.0,
+        4096.0,
+        256.0
+      ]
+    },
+    "rotate_90": {},
+    "rotate_180": {},
+    "rotate_270": {},
+    "rotate_arbitrary": {
+      "angle": [
+        -180.0,
+        180.0,
+        0.0
+      ]
+    },
+    "affine": {
+      "a": [
+        -2.0,
+        2.0,
+        1.0
+      ],
+      "b": [
+        -2.0,
+        2.0,
+        0.0
+      ],
+      "tx": [
+        -1.0,
+        1.0,
+        0.0
+      ],
+      "c": [
+        -2.0,
+        2.0,
+        0.0
+      ],
+      "d": [
+        -2.0,
+        2.0,
+        1.0
+      ],
+      "ty": [
+        -1.0,
+        1.0,
+        0.0
+      ]
+    },
+    "perspective": {
+      "p00": [
+        -2.0,
+        2.0,
+        1.0
+      ],
+      "p01": [
+        -2.0,
+        2.0,
+        0.0
+      ],
+      "p02": [
+        -1.0,
+        1.0,
+        0.0
+      ],
+      "p10": [
+        -2.0,
+        2.0,
+        0.0
+      ],
+      "p11": [
+        -2.0,
+        2.0,
+        1.0
+      ],
+      "p12": [
+        -1.0,
+        1.0,
+        0.0
+      ],
+      "p20": [
+        -1.0,
+        1.0,
+        0.0
+      ],
+      "p21": [
+        -1.0,
+        1.0,
+        0.0
+      ]
+    },
+    "l1_norm": {},
+    "l1_norm_ch": {},
+    "l2_norm": {},
+    "l2_norm_ch": {},
+    "minmax_norm": {},
+    "alpha_blend": {
+      "alpha": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "mask_composite": {},
+    "overlay": {},
+    "weighted_add": {
+      "alpha": [
+        0.0,
+        2.0,
+        1.0
+      ],
+      "beta": [
+        0.0,
+        2.0,
+        1.0
+      ],
+      "gamma": [
+        -1.0,
+        1.0,
+        0.0
+      ]
+    },
+    "adaptive_thresh_gaussian_3x3": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "adaptive_thresh_gaussian_5x5": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "adaptive_thresh_gaussian_7x7": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "adaptive_thresh_mean_3x3": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "adaptive_thresh_mean_5x5": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "adaptive_thresh_mean_7x7": {
+      "C": [
+        -0.5,
+        0.5,
+        0.02
+      ]
+    },
+    "inrange": {
+      "lower": [
+        0.0,
+        1.0,
+        0.2
+      ],
+      "upper": [
+        0.0,
+        1.0,
+        0.8
+      ]
+    },
+    "inv_binarize": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "thresh_trunc": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "thresh_tozero": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "thresh_tozero_inv": {
+      "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "harris_corner_3x3": {
+      "k": [
+        0.01,
+        0.2,
+        0.04
+      ]
+    },
+    "harris_corner_5x5": {
+      "k": [
+        0.01,
+        0.2,
+        0.04
+      ]
+    },
+    "line_extract_h_15": {},
+    "line_extract_v_15": {},
+    "shi_tomasi_3x3": {},
+    "shi_tomasi_5x5": {},
+    "batch_squeeze": {},
+    "batch_unsqueeze": {},
+    "channel_mean_sub": {},
+    "chw_to_hwc": {},
+    "float_to_uint8": {},
+    "hwc_to_chw": {},
+    "imagenet_norm": {},
+    "letterbox": {
+      "target_h": [
+        64.0,
+        1024.0,
+        640.0
+      ],
+      "target_w": [
+        64.0,
+        1024.0,
+        640.0
+      ]
+    },
+    "normalize_neg1_pos1": {},
+    "pixel_mean_sub": {},
+    "scale_from_255": {},
+    "scale_to_255": {},
+    "uint8_to_float": {}
+  }
+}

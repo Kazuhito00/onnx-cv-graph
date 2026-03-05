@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONNX 画像処理デモ (onnxruntime-web)</title>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: sans-serif; display: flex; height: 100vh; background: #f5f5f5; }
+
+  /* サイドバー */
+  #sidebar {
+    width: 300px; min-width: 300px; background: #fff; padding: 16px;
+    border-right: 1px solid #ddd; overflow-y: auto;
+  }
+  #sidebar h3 { margin-bottom: 12px; font-size: 14px; color: #333; }
+  #sidebar label { display: block; margin: 4px 0; cursor: pointer; font-size: 13px; }
+  #sidebar input[type="radio"] { margin-right: 6px; }
+  #sidebar details { margin-bottom: 8px; }
+  #sidebar summary { cursor: pointer; font-weight: bold; font-size: 13px; padding: 4px 0; user-select: none; }
+  #sidebar details label { padding-left: 8px; }
+  /* パラメータスライダー (メインエリア) */
+  #param-sliders { display: flex; gap: 16px; margin-top: 12px; }
+  #param-sliders:empty { display: none; }
+  .slider-group { flex: 1; min-width: 0; }
+  .slider-group label { font-weight: bold; font-size: 13px; display: block; }
+  .slider-group input[type="range"] { width: 100%; margin: 4px 0; }
+  .slider-value { font-size: 12px; color: #666; text-align: right; }
+  #info { margin-top: 16px; font-size: 12px; color: #888; }
+  #file-upload { margin-top: 12px; }
+  #file-upload input { font-size: 12px; }
+
+  /* メインエリア */
+  #main { flex: 1; padding: 24px; overflow-y: auto; }
+  #main h1 { font-size: 20px; margin-bottom: 16px; }
+  #content { display: flex; gap: 16px; }
+  #graph-panel { flex: 1; min-width: 0; }
+  #graph-panel iframe { width: 100%; height: 420px; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+  #images { display: flex; gap: 16px; flex: 2; }
+  #images > div { flex: 1; min-width: 0; }
+  canvas { max-width: 100%; border: 1px solid #ddd; background: #fff; }
+  #timing { margin-top: 16px; padding: 8px 12px; background: #e8f4fd; border-radius: 4px; font-size: 13px; color: #1a73e8; }
+  #status { margin-top: 8px; font-size: 12px; color: #888; }
+  #expand-graph-btn { margin-top: 4px; width: 100%; padding: 4px 0; font-size: 12px; cursor: pointer; border: 1px solid #ddd; border-radius: 4px; background: #fff; color: #555; }
+  #expand-graph-btn:hover { background: #f0f0f0; }
+
+  /* グラフ拡大モーダル */
+  #graph-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+  #graph-modal.active { display: flex; }
+  #graph-modal-inner { position: relative; width: 90vw; height: 85vh; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  #graph-modal-inner iframe { width: 100%; height: 100%; border: none; }
+  #graph-modal-close { position: absolute; top: 8px; right: 12px; font-size: 24px; cursor: pointer; color: #555; background: #fff; border: none; border-radius: 4px; padding: 0 8px; z-index: 1; line-height: 1.4; }
+  #graph-modal-close:hover { background: #eee; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="file-upload">
+    <input type="file" id="image-file" accept="image/*">
+  </div>
+  <div id="info"></div>
+  <hr style="margin:8px 0">
+  <div id="model-select"></div>
+</div>
+
+<div id="main">
+  <h1>ONNX 画像処理デモ (onnxruntime-web)</h1>
+  <div id="content">
+    <div id="graph-panel">
+      <iframe id="graph-frame" src=""></iframe>
+      <button id="expand-graph-btn" onclick="openGraphModal()">グラフ拡大表示</button>
+    </div>
+    <div id="images">
+      <div><canvas id="before"></canvas></div>
+      <div><canvas id="after"></canvas></div>
+    </div>
+  </div>
+  <div id="param-sliders"></div>
+  <div id="timing"></div>
+  <div id="status">モデルを読み込み中...</div>
+</div>
+
+<script>
+const MODELS_BASE = "models";
+const ASSETS_BASE = "assets";
+
+let modelsMeta = {};      // モデル名 → パラメータ情報
+let modelsCategories = []; // カテゴリ配列
+let modelToCategory = {}; // モデル名 → カテゴリ ID の逆引き
+let currentSession = null;
+let currentModelName = null;
+let isFirstRun = true;
+let imgTensor = null;  // {data: Float32Array, dims: [1,3,H,W]}
+let imgWidth = 0;
+let imgHeight = 0;
+
+// --- メタデータ読み込み ---
+async function loadModelsMeta() {
+  try {
+    const res = await fetch(`${MODELS_BASE}/models_meta.json`);
+    if (res.ok) {
+      const data = await res.json();
+      // 新形式 (categories + params) と旧形式 (フラット) の両方に対応
+      if (data.categories) {
+        modelsCategories = data.categories.filter(c => !c.hidden);
+        modelsMeta = data.params || {};
+        // モデル名 → カテゴリ ID の逆引きマップを構築
+        for (const cat of modelsCategories) {
+          for (const name of cat.models) {
+            modelToCategory[name] = cat.id;
+          }
+        }
+      } else {
+        modelsMeta = data;
+      }
+    }
+  } catch (e) {
+    console.warn("models_meta.json の読み込みに失敗。フォールバック値を使用します。", e);
+  }
+}
+
+// --- モデル読み込み ---
+async function loadModel(name) {
+  setStatus(`${name}.onnx を読み込み中...`);
+  const catId = modelToCategory[name] || "";
+  const modelUrl = catId ? `${MODELS_BASE}/${catId}/${name}.onnx` : `${MODELS_BASE}/${name}.onnx`;
+  const session = await ort.InferenceSession.create(modelUrl);
+  setStatus(`${name} 読み込み完了`);
+  return session;
+}
+
+// --- 画像読み込み → NCHW Float32Array ---
+function loadImageFromElement(imgElem) {
+  const canvas = document.createElement("canvas");
+  canvas.width = imgElem.naturalWidth || imgElem.width;
+  canvas.height = imgElem.naturalHeight || imgElem.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(imgElem, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  return imageDataToNCHW(imageData, canvas.width, canvas.height);
+}
+
+function imageDataToNCHW(imageData, w, h) {
+  const rgba = imageData.data;  // Uint8ClampedArray, RGBA HWC
+  const chw = new Float32Array(3 * h * w);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const srcIdx = (y * w + x) * 4;
+      const dstBase = y * w + x;
+      chw[0 * h * w + dstBase] = rgba[srcIdx] / 255.0;      // R
+      chw[1 * h * w + dstBase] = rgba[srcIdx + 1] / 255.0;  // G
+      chw[2 * h * w + dstBase] = rgba[srcIdx + 2] / 255.0;  // B
+    }
+  }
+  return chw;
+}
+
+async function loadDefaultImage() {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const chw = loadImageFromElement(img);
+      imgWidth = img.naturalWidth;
+      imgHeight = img.naturalHeight;
+      imgTensor = new ort.Tensor("float32", chw, [1, 3, imgHeight, imgWidth]);
+      // Before 表示
+      drawBefore(img);
+      updateInfo();
+      resolve();
+    };
+    img.onerror = () => reject(new Error("sample.jpg の読み込みに失敗しました"));
+    img.src = "assets/sample.jpg";
+  });
+}
+
+function drawBefore(imgElem) {
+  const canvas = document.getElementById("before");
+  canvas.width = imgElem.naturalWidth || imgElem.width;
+  canvas.height = imgElem.naturalHeight || imgElem.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(imgElem, 0, 0);
+}
+
+// --- パラメータスライダー生成 ---
+function buildParamSliders(session, meta) {
+  const container = document.getElementById("param-sliders");
+  container.innerHTML = "";
+  const inputs = session.inputNames;
+  // 画像入力 (rank 4) 以外を検出
+  // onnxruntime-web では inputNames のみ使えるので、名前で判別
+  const paramNames = inputs.filter(n => n !== "input" && n !== "input2");
+  for (const name of paramNames) {
+    const paramInfo = (meta && meta[name]) ? meta[name] : [0.0, 1.0, 0.5];
+    const [lo, hi, def] = paramInfo;
+    const step = (hi - lo) / 100;
+
+    const group = document.createElement("div");
+    group.className = "slider-group";
+
+    const label = document.createElement("label");
+    label.textContent = name;
+    group.appendChild(label);
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = lo;
+    slider.max = hi;
+    slider.step = step;
+    slider.value = def;
+    slider.dataset.paramName = name;
+    group.appendChild(slider);
+
+    const valueDisplay = document.createElement("div");
+    valueDisplay.className = "slider-value";
+    valueDisplay.textContent = Number(def).toFixed(2);
+    group.appendChild(valueDisplay);
+
+    slider.addEventListener("input", () => {
+      valueDisplay.textContent = Number(slider.value).toFixed(2);
+      onParamChange();
+    });
+
+    container.appendChild(group);
+  }
+}
+
+function getParamValues() {
+  const params = {};
+  const sliders = document.querySelectorAll("#param-sliders input[type=range]");
+  for (const s of sliders) {
+    params[s.dataset.paramName] = new ort.Tensor("float32", new Float32Array([parseFloat(s.value)]), [1]);
+  }
+  return params;
+}
+
+// --- 推論実行 ---
+async function runInference(session, imgTensor, params) {
+  const feeds = { input: imgTensor, ...params };
+  const t0 = performance.now();
+  const results = await session.run(feeds);
+  const elapsed = performance.now() - t0;
+  // 最初の出力を取得
+  const outputName = session.outputNames[0];
+  return { output: results[outputName], elapsed };
+}
+
+// --- 出力→Canvas に描画 ---
+function displayResult(outputTensor, canvas) {
+  const [, c, h, w] = outputTensor.dims;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const imageData = ctx.createImageData(w, h);
+  const data = outputTensor.data;  // Float32Array, NCHW
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const srcBase = y * w + x;
+      const dstIdx = (y * w + x) * 4;
+      imageData.data[dstIdx] = Math.round(Math.min(1, Math.max(0, data[0 * h * w + srcBase])) * 255);     // R
+      imageData.data[dstIdx + 1] = Math.round(Math.min(1, Math.max(0, data[1 * h * w + srcBase])) * 255); // G
+      imageData.data[dstIdx + 2] = Math.round(Math.min(1, Math.max(0, data[2 * h * w + srcBase])) * 255); // B
+      imageData.data[dstIdx + 3] = 255; // A
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+// --- UI 制御 ---
+function updateInfo() {
+  document.getElementById("info").innerHTML =
+    `<p style="font-size:12px;color:#888;margin-top:4px;">入力サイズ: ${imgWidth} x ${imgHeight}</p>`;
+}
+
+function setStatus(msg) {
+  document.getElementById("status").textContent = msg;
+}
+
+async function onModelChange() {
+  const selected = document.querySelector('input[name="model"]:checked');
+  if (!selected) return;
+  const name = selected.value;
+  if (name === currentModelName && currentSession) {
+    return;
+  }
+  currentModelName = name;
+  // 選択モデルのカテゴリだけ開き、他を閉じる
+  const activeCatId = modelToCategory[name] || "";
+  document.querySelectorAll("#model-select details").forEach(d => {
+    d.open = (d.dataset.catId === activeCatId);
+  });
+  // グラフ表示を更新
+  const graphCatId = activeCatId;
+  document.getElementById("graph-frame").src = graphCatId
+    ? `${ASSETS_BASE}/${graphCatId}/${name}_graph.html`
+    : `${ASSETS_BASE}/${name}_graph.html`;
+  try {
+    currentSession = await loadModel(name);
+    const meta = modelsMeta[name] || {};
+    buildParamSliders(currentSession, meta);
+    if (imgTensor) {
+      await runAndDisplay();
+    }
+  } catch (e) {
+    setStatus(`エラー: ${e.message}`);
+    console.error(e);
+  }
+}
+
+// スライダードラッグ中の推論を間引く (デバウンス + 排他制御)
+let _paramTimer = null;
+let _inferenceRunning = false;
+let _pendingParam = false;
+function onParamChange() {
+  if (!currentSession || !imgTensor) return;
+  if (_paramTimer) clearTimeout(_paramTimer);
+  _paramTimer = setTimeout(async () => {
+    _paramTimer = null;
+    if (_inferenceRunning) { _pendingParam = true; return; }
+    _inferenceRunning = true;
+    try {
+      await runAndDisplay();
+    } finally {
+      _inferenceRunning = false;
+      if (_pendingParam) { _pendingParam = false; onParamChange(); }
+    }
+  }, 30);
+}
+
+async function runAndDisplay() {
+  try {
+    const params = getParamValues();
+    const { output, elapsed } = await runInference(currentSession, imgTensor, params);
+    displayResult(output, document.getElementById("after"));
+    if (isFirstRun) {
+      document.getElementById("timing").textContent = "処理時間: —";
+      isFirstRun = false;
+    } else {
+      document.getElementById("timing").textContent = `処理時間: ${elapsed.toFixed(2)} ms`;
+    }
+    setStatus("");
+  } catch (e) {
+    setStatus(`推論エラー: ${e.message}`);
+    console.error(e);
+  }
+}
+
+// --- ファイルアップロード ---
+document.getElementById("image-file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = async () => {
+    const chw = loadImageFromElement(img);
+    imgWidth = img.naturalWidth;
+    imgHeight = img.naturalHeight;
+    imgTensor = new ort.Tensor("float32", chw, [1, 3, imgHeight, imgWidth]);
+    drawBefore(img);
+    updateInfo();
+    URL.revokeObjectURL(url);
+    if (currentSession) {
+      await runAndDisplay();
+    }
+  };
+  img.src = url;
+});
+
+// --- モデル選択ラジオボタン生成 (カテゴリ別折りたたみ) ---
+function buildModelSelect() {
+  const container = document.getElementById("model-select");
+  container.innerHTML = "";
+
+  if (modelsCategories.length > 0) {
+    // カテゴリ構造がある場合: <details> で折りたたみ表示
+    for (let ci = 0; ci < modelsCategories.length; ci++) {
+      const cat = modelsCategories[ci];
+      const details = document.createElement("details");
+      details.dataset.catId = cat.id;
+      // 最初のカテゴリはデフォルト開き
+      if (ci === 0) details.open = true;
+      const summary = document.createElement("summary");
+      // 日英2行表示
+      const jaSpan = document.createElement("span");
+      jaSpan.textContent = cat.label_ja || "";
+      const enSpan = document.createElement("span");
+      enSpan.textContent = cat.label_en || "";
+      enSpan.style.cssText = "display:block; font-size:11px; font-weight:normal; color:#888;";
+      summary.appendChild(jaSpan);
+      summary.appendChild(enSpan);
+      details.appendChild(summary);
+
+      for (const name of cat.models) {
+        const label = document.createElement("label");
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "model";
+        radio.value = name;
+        radio.addEventListener("change", onModelChange);
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(name));
+        details.appendChild(label);
+      }
+
+      container.appendChild(details);
+    }
+  } else {
+    // フォールバック: フラットなラジオボタンリスト
+    for (const name of Object.keys(modelsMeta)) {
+      const label = document.createElement("label");
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "model";
+      radio.value = name;
+      radio.addEventListener("change", onModelChange);
+      label.appendChild(radio);
+      label.appendChild(document.createTextNode(name));
+      container.appendChild(label);
+    }
+  }
+}
+
+// --- 初期化 ---
+async function init() {
+  await loadModelsMeta();
+  buildModelSelect();
+  try {
+    await loadDefaultImage();
+  } catch (e) {
+    setStatus("sample.jpg が見つかりません。画像をアップロードしてください。");
+    console.warn(e);
+  }
+  // 最初のモデルを選択
+  const first = document.querySelector('input[name="model"]');
+  if (first) {
+    first.checked = true;
+    await onModelChange();
+  }
+}
+
+init();
+
+// --- グラフ拡大モーダル ---
+function openGraphModal() {
+  const src = document.getElementById("graph-frame").src;
+  if (!src) return;
+  const modalFrame = document.getElementById("graph-modal-frame");
+  modalFrame.src = src;
+  // iframe 内の pyvis 固定高さを親いっぱいに上書き
+  modalFrame.onload = () => {
+    try {
+      const innerDoc = modalFrame.contentDocument || modalFrame.contentWindow.document;
+      const canvas = innerDoc.getElementById("mynetwork");
+      if (canvas) canvas.style.height = "100%";
+      innerDoc.documentElement.style.height = "100%";
+      innerDoc.body.style.height = "100%";
+    } catch (e) { /* 同一オリジン制限時は無視 */ }
+  };
+  document.getElementById("graph-modal").classList.add("active");
+}
+function closeGraphModal(e) {
+  if (e && e.target !== document.getElementById("graph-modal") && e.target !== document.getElementById("graph-modal-close")) return;
+  document.getElementById("graph-modal").classList.remove("active");
+  document.getElementById("graph-modal-frame").src = "";
+}
+</script>
+
+<div id="graph-modal" onclick="closeGraphModal(event)">
+  <div id="graph-modal-inner">
+    <button id="graph-modal-close" onclick="closeGraphModal()">&times;</button>
+    <iframe id="graph-modal-frame" src=""></iframe>
+  </div>
+</div>
+
+</body>
+</html>

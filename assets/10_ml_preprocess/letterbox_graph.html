@@ -1,0 +1,123 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 400px;
+                 background-color: #ffffff;
+                 border: none;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body style="margin:0;padding:0;overflow:hidden;">
+        <div style="width:100%;margin:0;padding:0;">
+            
+            
+            <div id="mynetwork" ></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"borderWidth": 0, "color": "#a7f3d0", "font": {"color": "#334155", "size": 12}, "id": "input", "label": "input\nN\u00d73\u00d7H\u00d7W", "shape": "box"}, {"borderWidth": 0, "color": "#a7f3d0", "font": {"color": "#334155", "size": 12}, "id": "target_h", "label": "target_h\n1", "shape": "box"}, {"borderWidth": 0, "color": "#a7f3d0", "font": {"color": "#334155", "size": 12}, "id": "target_w", "label": "target_w\n1", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Shape_0", "label": "Shape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Gather_1", "label": "Gather", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Gather_2", "label": "Gather", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_3", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_4", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Div_5", "label": "Div", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Div_6", "label": "Div", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Min_7", "label": "Min", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Concat_8", "label": "Concat", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Resize_9", "label": "Resize", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Shape_10", "label": "Shape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Gather_11", "label": "Gather", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Gather_12", "label": "Gather", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_13", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_14", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_15", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_16", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Div_17", "label": "Div", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Floor_18", "label": "Floor", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_19", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Div_20", "label": "Div", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Floor_21", "label": "Floor", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_22", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_23", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_24", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_25", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Cast_26", "label": "Cast", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Reshape_27", "label": "Reshape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Reshape_28", "label": "Reshape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Reshape_29", "label": "Reshape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Reshape_30", "label": "Reshape", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Concat_31", "label": "Concat", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Pad_32", "label": "Pad", "shape": "box"}, {"borderWidth": 0, "color": "#fed7aa", "font": {"color": "#334155", "size": 12}, "id": "output", "label": "output\nN\u00d73\u00d7H_out\u00d7W_out", "shape": "box"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "input", "title": "input", "to": "Shape_0"}, {"arrows": "to", "from": "Shape_0", "title": "in_shape", "to": "Gather_1"}, {"arrows": "to", "from": "Shape_0", "title": "in_shape", "to": "Gather_2"}, {"arrows": "to", "from": "Gather_1", "title": "H_i64", "to": "Cast_3"}, {"arrows": "to", "from": "Gather_2", "title": "W_i64", "to": "Cast_4"}, {"arrows": "to", "from": "target_h", "title": "target_h", "to": "Div_5"}, {"arrows": "to", "from": "Cast_3", "title": "H_f", "to": "Div_5"}, {"arrows": "to", "from": "target_w", "title": "target_w", "to": "Div_6"}, {"arrows": "to", "from": "Cast_4", "title": "W_f", "to": "Div_6"}, {"arrows": "to", "from": "Div_5", "title": "scale_h", "to": "Min_7"}, {"arrows": "to", "from": "Div_6", "title": "scale_w", "to": "Min_7"}, {"arrows": "to", "from": "Min_7", "title": "scale", "to": "Concat_8"}, {"arrows": "to", "from": "Min_7", "title": "scale", "to": "Concat_8"}, {"arrows": "to", "from": "input", "title": "input", "to": "Resize_9"}, {"arrows": "to", "from": "Concat_8", "title": "scales", "to": "Resize_9"}, {"arrows": "to", "from": "Resize_9", "title": "resized", "to": "Shape_10"}, {"arrows": "to", "from": "Shape_10", "title": "res_shape", "to": "Gather_11"}, {"arrows": "to", "from": "Shape_10", "title": "res_shape", "to": "Gather_12"}, {"arrows": "to", "from": "Gather_11", "title": "newH_i64", "to": "Cast_13"}, {"arrows": "to", "from": "Gather_12", "title": "newW_i64", "to": "Cast_14"}, {"arrows": "to", "from": "target_h", "title": "target_h", "to": "Sub_15"}, {"arrows": "to", "from": "Cast_13", "title": "newH_f", "to": "Sub_15"}, {"arrows": "to", "from": "target_w", "title": "target_w", "to": "Sub_16"}, {"arrows": "to", "from": "Cast_14", "title": "newW_f", "to": "Sub_16"}, {"arrows": "to", "from": "Sub_15", "title": "pad_h_total", "to": "Div_17"}, {"arrows": "to", "from": "Div_17", "title": "pad_h_half", "to": "Floor_18"}, {"arrows": "to", "from": "Sub_15", "title": "pad_h_total", "to": "Sub_19"}, {"arrows": "to", "from": "Floor_18", "title": "pad_top_f", "to": "Sub_19"}, {"arrows": "to", "from": "Sub_16", "title": "pad_w_total", "to": "Div_20"}, {"arrows": "to", "from": "Div_20", "title": "pad_w_half", "to": "Floor_21"}, {"arrows": "to", "from": "Sub_16", "title": "pad_w_total", "to": "Sub_22"}, {"arrows": "to", "from": "Floor_21", "title": "pad_left_f", "to": "Sub_22"}, {"arrows": "to", "from": "Floor_18", "title": "pad_top_f", "to": "Cast_23"}, {"arrows": "to", "from": "Sub_19", "title": "pad_bottom_f", "to": "Cast_24"}, {"arrows": "to", "from": "Floor_21", "title": "pad_left_f", "to": "Cast_25"}, {"arrows": "to", "from": "Sub_22", "title": "pad_right_f", "to": "Cast_26"}, {"arrows": "to", "from": "Cast_23", "title": "pad_top", "to": "Reshape_27"}, {"arrows": "to", "from": "Cast_24", "title": "pad_bottom", "to": "Reshape_28"}, {"arrows": "to", "from": "Cast_25", "title": "pad_left", "to": "Reshape_29"}, {"arrows": "to", "from": "Cast_26", "title": "pad_right", "to": "Reshape_30"}, {"arrows": "to", "from": "Reshape_27", "title": "pad_top_1d", "to": "Concat_31"}, {"arrows": "to", "from": "Reshape_29", "title": "pad_left_1d", "to": "Concat_31"}, {"arrows": "to", "from": "Reshape_28", "title": "pad_bottom_1d", "to": "Concat_31"}, {"arrows": "to", "from": "Reshape_30", "title": "pad_right_1d", "to": "Concat_31"}, {"arrows": "to", "from": "Resize_9", "title": "resized", "to": "Pad_32"}, {"arrows": "to", "from": "Concat_31", "title": "pads", "to": "Pad_32"}, {"arrows": "to", "from": "Pad_32", "title": "output", "to": "output"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"layout": {"hierarchical": {"enabled": true, "direction": "UD", "sortMethod": "directed", "nodeSpacing": 120, "levelSeparation": 60}}, "physics": {"enabled": false}, "edges": {"arrows": {"to": {"enabled": true}}, "color": {"color": "#e2e8f0", "highlight": "#c7d2fe"}, "smooth": {"type": "cubicBezier"}}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
