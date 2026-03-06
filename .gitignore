@@ -209,5 +209,6 @@ __marimo__/
 # Claude Code
 .claude/
 
-# example onnx
-models/example/pipeline.onnx
+# example
+assets/example/*
+models/example/*

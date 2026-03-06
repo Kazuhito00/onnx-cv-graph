@@ -10,7 +10,7 @@ import onnxruntime as ort
 import pytest
 
 from src.chain import ChainOp
-from src.onnx_cv_graph import BinarizeOp, GrayscaleOp
+from src.onnx_cv_graph import AlphaBlendOp, BinarizeOp, BrightnessOp, GrayscaleOp, WeightedAddOp
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_DIR = PROJECT_ROOT / "models"
@@ -147,3 +147,111 @@ class TestChainMetadata:
         specs = chain_grayscale_binarize.output_specs
         assert len(specs) == 1
         assert specs[0][0] == "output"
+
+
+class TestChainTwoImageInput:
+    """2画像入力 op (input2) を含む ChainOp のテスト群."""
+
+    @pytest.fixture(scope="class")
+    def chain_alpha_gray(self):
+        """AlphaBlendOp (input2あり) → GrayscaleOp のチェーン."""
+        return ChainOp([AlphaBlendOp(), GrayscaleOp()])
+
+    @pytest.fixture(scope="class")
+    def session_alpha_gray(self, chain_alpha_gray, tmp_path_factory):
+        path = tmp_path_factory.mktemp("models") / "alpha_gray.onnx"
+        chain_alpha_gray.export(path)
+        return ort.InferenceSession(str(path))
+
+    def test_input_specs_contains_input2(self, chain_alpha_gray):
+        """先頭 op が input2 を持つ場合、input_specs に "input2" が含まれること."""
+        names = [s[0] for s in chain_alpha_gray.input_specs]
+        assert "input" in names
+        assert "input2" in names
+        assert "alpha" in names
+
+    def test_output_shape(self, session_alpha_gray):
+        """(N,3,H,W) の2入力を受け取り (N,3,H,W) を出力すること."""
+        img1 = np.random.rand(1, 3, 8, 8).astype(np.float32)
+        img2 = np.random.rand(1, 3, 8, 8).astype(np.float32)
+        out = session_alpha_gray.run(None, {
+            "input": img1, "input2": img2,
+            "alpha": np.array([0.5], dtype=np.float32),
+        })[0]
+        assert out.shape == (1, 3, 8, 8)
+
+    def test_matches_sequential(self, session_alpha_gray):
+        """ChainOp の出力が逐次実行と一致すること."""
+        rng = np.random.default_rng(0)
+        img1 = rng.random((1, 3, 8, 8), dtype=np.float32)
+        img2 = rng.random((1, 3, 8, 8), dtype=np.float32)
+        alpha_val = np.array([0.3], dtype=np.float32)
+
+        chain_out = session_alpha_gray.run(None, {
+            "input": img1, "input2": img2, "alpha": alpha_val,
+        })[0]
+
+        blend_dir = MODEL_DIR / "07_blend"
+        gray_dir  = MODEL_DIR / "01_elementwise"
+        blend_sess = ort.InferenceSession(str(blend_dir / "alpha_blend.onnx"))
+        gray_sess  = ort.InferenceSession(str(gray_dir  / "grayscale.onnx"))
+        blended = blend_sess.run(None, {"input": img1, "input2": img2, "alpha": alpha_val})[0]
+        expected = gray_sess.run(None, {"input": blended})[0]
+
+        np.testing.assert_allclose(chain_out, expected, atol=1e-5)
+
+    def test_middle_op_input2(self):
+        """中間 op が input2 を持つ場合も正しく動作すること."""
+        chain = ChainOp([BrightnessOp(), AlphaBlendOp(), GrayscaleOp()])
+        names = [s[0] for s in chain.input_specs]
+        assert "input" in names
+        assert "input2" in names
+        assert "brightness" in names
+        assert "alpha" in names
+
+        path = MODEL_DIR / "_test_mid_input2.onnx"
+        chain.export(path)
+        try:
+            sess = ort.InferenceSession(str(path))
+            img1 = np.full((1, 3, 4, 4), 0.4, dtype=np.float32)
+            img2 = np.full((1, 3, 4, 4), 0.6, dtype=np.float32)
+            out = sess.run(None, {
+                "input": img1, "input2": img2,
+                "brightness": np.array([0.0], dtype=np.float32),
+                "alpha": np.array([0.5], dtype=np.float32),
+            })[0]
+            assert out.shape == (1, 3, 4, 4)
+        finally:
+            if path.exists():
+                path.unlink()
+
+    def test_multiple_ops_with_input2_renamed(self):
+        """複数 op が input2 を持つ場合、2番目以降は "{op_name}.input2" にリネームされること."""
+        chain = ChainOp([AlphaBlendOp(), WeightedAddOp()])
+        names = [s[0] for s in chain.input_specs]
+        assert "input2" in names
+        assert "weighted_add.input2" in names
+
+    def test_multiple_ops_with_input2_execution(self):
+        """複数 op が input2 を持つ場合もモデルが正しく実行できること."""
+        chain = ChainOp([AlphaBlendOp(), WeightedAddOp()])
+        path = MODEL_DIR / "_test_multi_input2.onnx"
+        chain.export(path)
+        try:
+            sess = ort.InferenceSession(str(path))
+            rng = np.random.default_rng(7)
+            img1 = rng.random((1, 3, 4, 4), dtype=np.float32)
+            img2 = rng.random((1, 3, 4, 4), dtype=np.float32)
+            img3 = rng.random((1, 3, 4, 4), dtype=np.float32)
+            out = sess.run(None, {
+                "input": img1, "input2": img2,
+                "weighted_add.input2": img3,
+                "alpha": np.array([0.5], dtype=np.float32),
+                "weighted_add.alpha": np.array([0.6], dtype=np.float32),
+                "beta":  np.array([0.4], dtype=np.float32),
+                "gamma": np.array([0.0], dtype=np.float32),
+            })[0]
+            assert out.shape == (1, 3, 4, 4)
+        finally:
+            if path.exists():
+                path.unlink()

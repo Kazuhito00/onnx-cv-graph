@@ -13,6 +13,10 @@ class ChainOp(OnnxGraphOp):
     各 op の build_graph() から得たグラフをプレフィックス付きで結合し、
     中間出力→次段入力を内部接続する.
 
+    2画像入力 op (input2 を持つ op) が含まれる場合、その input2 は
+    外部入力として ChainOp の graph input に追加される.
+    input2 が1つだけなら "input2"、複数なら "{op_name}.input2" で区別する.
+
     自動エクスポート対象外: variants() は空リストを返す.
     """
 
@@ -39,16 +43,18 @@ class ChainOp(OnnxGraphOp):
 
     @property
     def input_specs(self) -> List[TensorSpec]:
-        """先頭 op の画像入力 + 全 op のパラメータ入力を返す."""
+        """先頭 op の "input" + 全 op の "input2" + 全 op のパラメータ入力を返す."""
         specs: List[TensorSpec] = []
-        # 先頭 op の画像入力
+        # 先頭 op の画像入力 "input"
         for spec in self._ops[0].input_specs:
             if spec[0] == "input":
                 specs.append(spec)
                 break
-        # 全 op のパラメータ入力 (画像入力以外)
-        param_names = self._collect_param_names()
-        for renamed, (op, orig_spec) in param_names.items():
+        # 各 op の input2 (外部入力として露出)
+        for ext_name, (_, orig_spec) in self._collect_input2_names().items():
+            specs.append((ext_name, orig_spec[1], orig_spec[2]))
+        # パラメータ入力
+        for renamed, (_, orig_spec) in self._collect_param_names().items():
             specs.append((renamed, orig_spec[1], orig_spec[2]))
         return specs
 
@@ -60,8 +66,7 @@ class ChainOp(OnnxGraphOp):
     def param_meta(self) -> Dict[str, ParamMeta]:
         """全 op の param_meta をリネーム後のキーでマージ."""
         result: Dict[str, ParamMeta] = {}
-        param_names = self._collect_param_names()
-        for renamed, (op, orig_spec) in param_names.items():
+        for renamed, (op, orig_spec) in self._collect_param_names().items():
             orig_name = orig_spec[0]
             if orig_name in op.param_meta:
                 result[renamed] = op.param_meta[orig_name]
@@ -71,6 +76,23 @@ class ChainOp(OnnxGraphOp):
     def variants(cls) -> "List[OnnxGraphOp]":
         """自動エクスポート対象外."""
         return []
+
+    def _collect_input2_names(self) -> Dict[str, "tuple[int, TensorSpec]"]:
+        """input2 を持つ op を収集し、外部入力名 → (op_index, TensorSpec) を返す.
+
+        input2 が1つだけなら "input2"、複数存在する場合は "{op_name}.input2" で区別する.
+        """
+        result: Dict[str, tuple[int, TensorSpec]] = {}
+        seen: set[str] = set()
+        for i, op in enumerate(self._ops):
+            for spec in op.input_specs:
+                if spec[0] == "input2":
+                    name = "input2"
+                    if name in seen:
+                        name = f"{op.op_name}.input2"
+                    seen.add(name)
+                    result[name] = (i, spec)
+        return result
 
     def _collect_param_names(self) -> Dict[str, "tuple[OnnxGraphOp, TensorSpec]"]:
         """全 op のパラメータ入力を収集し、衝突時はリネームする.
@@ -109,6 +131,11 @@ class ChainOp(OnnxGraphOp):
             op_idx = self._ops.index(op)
             param_rename_map[(op_idx, orig_spec[0])] = renamed
 
+        # input2 名マッピング: op_index → 外部入力名
+        input2_ext_map: Dict[int, str] = {}
+        for ext_name, (op_idx, _) in self._collect_input2_names().items():
+            input2_ext_map[op_idx] = ext_name
+
         for i, op in enumerate(self._ops):
             graph = op.build_graph()
             prefix = f"{i}_"
@@ -132,6 +159,9 @@ class ChainOp(OnnxGraphOp):
                     elif tensor_name == "input" and not is_first:
                         # 中間 op の画像入力 → 前段の出力に接続
                         name_map[tensor_name] = f"{i - 1}_output"
+                    elif tensor_name == "input2":
+                        # input2 は外部入力名にマッピング
+                        name_map[tensor_name] = input2_ext_map.get(i, prefix + "input2")
                     elif tensor_name == "output" and is_last:
                         # 末尾 op の出力はそのまま "output"
                         name_map[tensor_name] = "output"
@@ -149,13 +179,13 @@ class ChainOp(OnnxGraphOp):
                 if init.name not in name_map:
                     name_map[init.name] = prefix + init.name
 
-            # ノードの入出力名をリマップ
-            for node in graph.node:
+            # ノードの入出力名をリマップ (ノード名はインデックス付きで一意化)
+            for j, node in enumerate(graph.node):
                 new_node = helper.make_node(
                     node.op_type,
                     inputs=[name_map.get(n, prefix + n) for n in node.input],
                     outputs=[name_map.get(n, prefix + n) for n in node.output],
-                    name=prefix + (node.name or node.op_type),
+                    name=f"{prefix}{node.name or node.op_type}_{j}",
                     **{attr.name: helper.get_attribute_value(attr) for attr in node.attribute},
                 )
                 all_nodes.append(new_node)
@@ -167,15 +197,20 @@ class ChainOp(OnnxGraphOp):
 
         # グラフ入力を構築
         graph_inputs = []
-        # 先頭 op の画像入力
+        # 先頭 op の画像入力 "input"
         for spec in self._ops[0].input_specs:
             if spec[0] == "input":
                 graph_inputs.append(
                     helper.make_tensor_value_info(spec[0], spec[1], spec[2])
                 )
                 break
+        # 各 op の input2 (外部入力)
+        for ext_name, (_, orig_spec) in self._collect_input2_names().items():
+            graph_inputs.append(
+                helper.make_tensor_value_info(ext_name, orig_spec[1], orig_spec[2])
+            )
         # パラメータ入力
-        for renamed, (op, orig_spec) in param_names.items():
+        for renamed, (_, orig_spec) in param_names.items():
             graph_inputs.append(
                 helper.make_tensor_value_info(renamed, orig_spec[1], orig_spec[2])
             )
