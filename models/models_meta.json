@@ -72,7 +72,13 @@
         "bg_normalize_7x7",
         "dog_3x3_5x5",
         "dog_3x3_7x7",
-        "dog_5x5_7x7"
+        "dog_5x5_7x7",
+        "kuwahara_5x5",
+        "kuwahara_7x7",
+        "kuwahara_9x9",
+        "xdog_3x3_5x5",
+        "xdog_5x5_9x9",
+        "xdog_7x7_13x13"
       ]
     },
     {
@@ -388,6 +394,12 @@
     "bg_normalize_3x3": {},
     "bg_normalize_5x5": {},
     "bg_normalize_7x7": {},
+    "kuwahara_5x5": {},
+    "kuwahara_7x7": {},
+    "kuwahara_9x9": {},
+    "xdog_3x3_5x5": {},
+    "xdog_5x5_9x9": {},
+    "xdog_7x7_13x13": {},
     "blur_3x3": {},
     "blur_5x5": {},
     "blur_7x7": {},

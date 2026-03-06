@@ -1,0 +1,123 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 400px;
+                 background-color: #ffffff;
+                 border: none;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body style="margin:0;padding:0;overflow:hidden;">
+        <div style="width:100%;margin:0;padding:0;">
+            
+            
+            <div id="mynetwork" ></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"borderWidth": 0, "color": "#a7f3d0", "font": {"color": "#334155", "size": 12}, "id": "input", "label": "input\nN\u00d73\u00d7H\u00d7W", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_0", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "ReduceSum_1", "label": "ReduceSum", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_2", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_3", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_4", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_5", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_6", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_7", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_8", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_9", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_10", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_11", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_12", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_13", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_14", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_15", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_16", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_17", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_18", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_19", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Mul_20", "label": "Mul", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Sub_21", "label": "Sub", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "AveragePool_22", "label": "AveragePool", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Less_23", "label": "Less", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Where_24", "label": "Where", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Where_25", "label": "Where", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Less_26", "label": "Less", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Where_27", "label": "Where", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Where_28", "label": "Where", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Less_29", "label": "Less", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Where_30", "label": "Where", "shape": "box"}, {"borderWidth": 0, "color": "#c7d2fe", "font": {"bold": true, "color": "#334155", "size": 14}, "id": "Clip_31", "label": "Clip", "shape": "box"}, {"borderWidth": 0, "color": "#fed7aa", "font": {"color": "#334155", "size": 12}, "id": "output", "label": "output\nN\u00d73\u00d7H\u00d7W", "shape": "box"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "input", "title": "input", "to": "Mul_0"}, {"arrows": "to", "from": "Mul_0", "title": "weighted", "to": "ReduceSum_1"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "Mul_2"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "Mul_2"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "AveragePool_3"}, {"arrows": "to", "from": "Mul_2", "title": "gray2", "to": "AveragePool_4"}, {"arrows": "to", "from": "AveragePool_3", "title": "mean_gray_q1", "to": "Mul_5"}, {"arrows": "to", "from": "AveragePool_3", "title": "mean_gray_q1", "to": "Mul_5"}, {"arrows": "to", "from": "AveragePool_4", "title": "mean_gray2_q1", "to": "Sub_6"}, {"arrows": "to", "from": "Mul_5", "title": "mean_gray_sq_q1", "to": "Sub_6"}, {"arrows": "to", "from": "input", "title": "input", "to": "AveragePool_7"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "AveragePool_8"}, {"arrows": "to", "from": "Mul_2", "title": "gray2", "to": "AveragePool_9"}, {"arrows": "to", "from": "AveragePool_8", "title": "mean_gray_q2", "to": "Mul_10"}, {"arrows": "to", "from": "AveragePool_8", "title": "mean_gray_q2", "to": "Mul_10"}, {"arrows": "to", "from": "AveragePool_9", "title": "mean_gray2_q2", "to": "Sub_11"}, {"arrows": "to", "from": "Mul_10", "title": "mean_gray_sq_q2", "to": "Sub_11"}, {"arrows": "to", "from": "input", "title": "input", "to": "AveragePool_12"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "AveragePool_13"}, {"arrows": "to", "from": "Mul_2", "title": "gray2", "to": "AveragePool_14"}, {"arrows": "to", "from": "AveragePool_13", "title": "mean_gray_q3", "to": "Mul_15"}, {"arrows": "to", "from": "AveragePool_13", "title": "mean_gray_q3", "to": "Mul_15"}, {"arrows": "to", "from": "AveragePool_14", "title": "mean_gray2_q3", "to": "Sub_16"}, {"arrows": "to", "from": "Mul_15", "title": "mean_gray_sq_q3", "to": "Sub_16"}, {"arrows": "to", "from": "input", "title": "input", "to": "AveragePool_17"}, {"arrows": "to", "from": "ReduceSum_1", "title": "gray", "to": "AveragePool_18"}, {"arrows": "to", "from": "Mul_2", "title": "gray2", "to": "AveragePool_19"}, {"arrows": "to", "from": "AveragePool_18", "title": "mean_gray_q4", "to": "Mul_20"}, {"arrows": "to", "from": "AveragePool_18", "title": "mean_gray_q4", "to": "Mul_20"}, {"arrows": "to", "from": "AveragePool_19", "title": "mean_gray2_q4", "to": "Sub_21"}, {"arrows": "to", "from": "Mul_20", "title": "mean_gray_sq_q4", "to": "Sub_21"}, {"arrows": "to", "from": "input", "title": "input", "to": "AveragePool_22"}, {"arrows": "to", "from": "Sub_6", "title": "var_q1", "to": "Less_23"}, {"arrows": "to", "from": "Sub_11", "title": "var_q2", "to": "Less_23"}, {"arrows": "to", "from": "Less_23", "title": "q1_lt_q2", "to": "Where_24"}, {"arrows": "to", "from": "Sub_6", "title": "var_q1", "to": "Where_24"}, {"arrows": "to", "from": "Sub_11", "title": "var_q2", "to": "Where_24"}, {"arrows": "to", "from": "Less_23", "title": "q1_lt_q2", "to": "Where_25"}, {"arrows": "to", "from": "AveragePool_7", "title": "mean_rgb_q1", "to": "Where_25"}, {"arrows": "to", "from": "AveragePool_12", "title": "mean_rgb_q2", "to": "Where_25"}, {"arrows": "to", "from": "Sub_16", "title": "var_q3", "to": "Less_26"}, {"arrows": "to", "from": "Sub_21", "title": "var_q4", "to": "Less_26"}, {"arrows": "to", "from": "Less_26", "title": "q3_lt_q4", "to": "Where_27"}, {"arrows": "to", "from": "Sub_16", "title": "var_q3", "to": "Where_27"}, {"arrows": "to", "from": "Sub_21", "title": "var_q4", "to": "Where_27"}, {"arrows": "to", "from": "Less_26", "title": "q3_lt_q4", "to": "Where_28"}, {"arrows": "to", "from": "AveragePool_17", "title": "mean_rgb_q3", "to": "Where_28"}, {"arrows": "to", "from": "AveragePool_22", "title": "mean_rgb_q4", "to": "Where_28"}, {"arrows": "to", "from": "Where_24", "title": "min_var_12", "to": "Less_29"}, {"arrows": "to", "from": "Where_27", "title": "min_var_34", "to": "Less_29"}, {"arrows": "to", "from": "Less_29", "title": "group12_wins", "to": "Where_30"}, {"arrows": "to", "from": "Where_25", "title": "mean_rgb_12", "to": "Where_30"}, {"arrows": "to", "from": "Where_28", "title": "mean_rgb_34", "to": "Where_30"}, {"arrows": "to", "from": "Where_30", "title": "selected", "to": "Clip_31"}, {"arrows": "to", "from": "Clip_31", "title": "output", "to": "output"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"layout": {"hierarchical": {"enabled": true, "direction": "UD", "sortMethod": "directed", "nodeSpacing": 120, "levelSeparation": 60}}, "physics": {"enabled": false}, "edges": {"arrows": {"to": {"enabled": true}}, "color": {"color": "#e2e8f0", "highlight": "#c7d2fe"}, "smooth": {"type": "cubicBezier"}}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

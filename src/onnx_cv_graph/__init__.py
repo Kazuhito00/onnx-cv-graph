@@ -41,6 +41,8 @@ WbGrayWorldOp = _color_space.WbGrayWorldOp
 WbWhitePatchOp = _color_space.WbWhitePatchOp
 
 BgNormalizeOp = _conv_filter.BgNormalizeOp
+KuwaharaOp = _conv_filter.KuwaharaOp
+XDoGOp = _conv_filter.XDoGOp
 BlurOp = _conv_filter.BlurOp
 DogOp = _conv_filter.DogOp
 EdgeMagnitudeOp = _conv_filter.EdgeMagnitudeOp
@@ -126,6 +128,7 @@ __all__ = [
     "HsvExtractOp", "HsvRangeOp", "Rgb2BgrOp", "SepiaOp",
     "WbGainOp", "WbGrayWorldOp", "WbWhitePatchOp",
     "BgNormalizeOp", "BlurOp", "DogOp", "EdgeMagnitudeOp", "EmbossOp", "GaussianBlurOp",
+    "KuwaharaOp", "XDoGOp",
     "LaplacianOp", "LogFilterOp", "PrewittOp", "ScharrOp",
     "SharpenOp", "SobelOp", "UnsharpMaskOp",
     "BlackHatOp", "ClosingOp", "DilateOp", "ErodeOp",
@@ -171,7 +174,8 @@ CATEGORIES = [
         "label_en": "Conv Filters",
         "ops": [BlurOp, GaussianBlurOp, SharpenOp, EmbossOp,
                 SobelOp, ScharrOp, LaplacianOp, PrewittOp,
-                UnsharpMaskOp, EdgeMagnitudeOp, LogFilterOp, BgNormalizeOp, DogOp],
+                UnsharpMaskOp, EdgeMagnitudeOp, LogFilterOp, BgNormalizeOp, DogOp,
+                KuwaharaOp, XDoGOp],
     },
     {
         "id": "04_morphology",

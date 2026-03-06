@@ -1,6 +1,8 @@
 """畳み込みフィルタ (Conv Filters) オペレーション."""
 
 from .bg_normalize import BgNormalizeOp
+from .kuwahara import KuwaharaOp
+from .xdog import XDoGOp
 from .blur import BlurOp
 from .dog import DogOp
 from .edge_magnitude import EdgeMagnitudeOp
@@ -16,6 +18,6 @@ from .unsharp_mask import UnsharpMaskOp
 
 __all__ = [
     "BgNormalizeOp", "BlurOp", "DogOp", "EdgeMagnitudeOp", "EmbossOp", "GaussianBlurOp",
-    "LaplacianOp", "LogFilterOp", "PrewittOp", "ScharrOp",
+    "KuwaharaOp", "XDoGOp", "LaplacianOp", "LogFilterOp", "PrewittOp", "ScharrOp",
     "SharpenOp", "SobelOp", "UnsharpMaskOp",
 ]
