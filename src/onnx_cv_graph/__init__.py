@@ -87,6 +87,7 @@ L1NormOp = _normalization.L1NormOp
 L1NormChOp = _normalization.L1NormChOp
 L2NormOp = _normalization.L2NormOp
 L2NormChOp = _normalization.L2NormChOp
+LcnOp = _normalization.LcnOp
 MinMaxNormOp = _normalization.MinMaxNormOp
 
 AlphaBlendOp = _blend.AlphaBlendOp
@@ -98,6 +99,7 @@ AdaptiveThreshGaussianOp = _threshold.AdaptiveThreshGaussianOp
 AdaptiveThreshMeanOp = _threshold.AdaptiveThreshMeanOp
 InrangeOp = _threshold.InrangeOp
 InvBinarizeOp = _threshold.InvBinarizeOp
+SauvolaOp = _threshold.SauvolaOp
 ThreshTruncOp = _threshold.ThreshTruncOp
 ThreshTozeroOp = _threshold.ThreshTozeroOp
 ThreshTozeroInvOp = _threshold.ThreshTozeroInvOp
@@ -137,10 +139,10 @@ __all__ = [
     "PerspectiveOp", "PyrDownOp", "PyrUpOp", "VFlipOp",
     "ResizeOp", "ResizeToOp",
     "Rotate90Op", "Rotate180Op", "Rotate270Op", "RotateArbitraryOp",
-    "L1NormOp", "L1NormChOp", "L2NormOp", "L2NormChOp", "MinMaxNormOp",
+    "L1NormOp", "L1NormChOp", "L2NormOp", "L2NormChOp", "LcnOp", "MinMaxNormOp",
     "AlphaBlendOp", "MaskCompositeOp", "OverlayOp", "WeightedAddOp",
     "AdaptiveThreshGaussianOp", "AdaptiveThreshMeanOp", "InrangeOp",
-    "InvBinarizeOp", "ThreshTruncOp", "ThreshTozeroOp", "ThreshTozeroInvOp",
+    "InvBinarizeOp", "SauvolaOp", "ThreshTruncOp", "ThreshTozeroOp", "ThreshTozeroInvOp",
     "HarrisCornerOp", "LineExtractOp", "ShiTomasiOp",
     "BatchSqueezeOp", "BatchUnsqueezeOp",
     "ChannelMeanSubOp", "ChwToHwcOp", "FloatToUint8Op", "HwcToChwOp",
@@ -197,14 +199,14 @@ CATEGORIES = [
         "id": "06_normalization",
         "label_ja": "正規化・統計",
         "label_en": "Normalization",
-        "ops": [MinMaxNormOp, L2NormOp, L1NormOp, L2NormChOp, L1NormChOp],
+        "ops": [MinMaxNormOp, L2NormOp, L1NormOp, L2NormChOp, L1NormChOp, LcnOp],
     },
     {
         "id": "08_threshold",
         "label_ja": "閾値処理",
         "label_en": "Threshold",
         "ops": [InvBinarizeOp, ThreshTruncOp, ThreshTozeroOp, ThreshTozeroInvOp,
-                AdaptiveThreshMeanOp, AdaptiveThreshGaussianOp, InrangeOp],
+                AdaptiveThreshMeanOp, AdaptiveThreshGaussianOp, InrangeOp, SauvolaOp],
     },
     {
         "id": "09_feature",

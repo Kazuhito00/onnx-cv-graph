@@ -136,7 +136,9 @@
         "l2_norm",
         "l1_norm",
         "l2_norm_ch",
-        "l1_norm_ch"
+        "l1_norm_ch",
+        "lcn_15x15",
+        "lcn_31x31"
       ]
     },
     {
@@ -154,7 +156,10 @@
         "adaptive_thresh_gaussian_3x3",
         "adaptive_thresh_gaussian_5x5",
         "adaptive_thresh_gaussian_7x7",
-        "inrange"
+        "inrange",
+        "sauvola_15x15",
+        "sauvola_31x31",
+        "sauvola_63x63"
       ]
     },
     {
@@ -621,6 +626,8 @@
     "l1_norm_ch": {},
     "l2_norm": {},
     "l2_norm_ch": {},
+    "lcn_15x15": {},
+    "lcn_31x31": {},
     "minmax_norm": {},
     "alpha_blend": {
       "alpha": [
@@ -704,6 +711,27 @@
     },
     "inv_binarize": {
       "threshold": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "sauvola_15x15": {
+      "k": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "sauvola_31x31": {
+      "k": [
+        0.0,
+        1.0,
+        0.5
+      ]
+    },
+    "sauvola_63x63": {
+      "k": [
         0.0,
         1.0,
         0.5

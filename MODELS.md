@@ -169,6 +169,7 @@ MaxPool のカーネルサイズもグラフ定義時に固定。**3×3 / 5×5**
 | L1 正規化 (全体) | `l1_norm` | `normalize(NORM_L1)` | Abs → ReduceSum → Add(ε) → Div → Clip | ★★ | — | ✅ |
 | L2 正規化 (チャネル) | `l2_norm_ch` | — | Mul → ReduceSum(C) → Sqrt → Add(ε) → Div → Clip | ★★★ | — | ✅ |
 | L1 正規化 (チャネル) | `l1_norm_ch` | — | Abs → ReduceSum(C) → Add(ε) → Div → Clip | ★★ | — | ✅ |
+| 局所コントラスト正規化 | `lcn_15x15` `lcn_31x31` | — | AveragePool(μ) → AveragePool(gray²) → Sqrt(σ) → (x−μ)/(σ+ε) → Sigmoid | ★★★ | 15×15 / 31×31 | ✅ |
 | 平均・標準偏差 | | `meanStdDev` | ReduceMean → Sub → Mul → ReduceMean → Sqrt | ★★ | — |  |
 | 平均正規化 | | — | ReduceMean → Sub | ★ | — |  |
 | 標準化 (z-score) | | — | ReduceMean → Sub → Sqrt(Var) → Div | ★★ | — |  |
@@ -194,6 +195,7 @@ MaxPool のカーネルサイズもグラフ定義時に固定。**3×3 / 5×5**
 | 逆ゼロ化 | `thresh_tozero_inv` | `threshold(THRESH_TOZERO_INV)` | Mul → ReduceSum → Greater → Not → Cast → Mul → Expand | ★★★ | threshold | ✅ |
 | 適応的閾値 (平均) | `adaptive_thresh_mean_3x3` `…5x5` `…7x7` | `adaptiveThreshold(MEAN_C)` | Mul → ReduceSum → AveragePool → Sub → Greater → Cast → Expand | ★★★ | C (block_size 固定: 3/5/7) | ✅ |
 | 適応的閾値 (ガウス) | `adaptive_thresh_gaussian_3x3` `…5x5` `…7x7` | `adaptiveThreshold(GAUSSIAN_C)` | Mul → ReduceSum → Pad → Conv(Gaussian) → Sub → Greater → Cast → Expand | ★★★ | C (block_size 固定: 3/5/7) | ✅ |
+| Sauvola 局所適応2値化 | `sauvola_15x15` `sauvola_31x31` `sauvola_63x63` | — | Mul → ReduceSum (輝度) → AveragePool(μ) → AveragePool(gray²) → Sqrt(σ) → T=μ×(1+k×(σ/R−1)) → Greater → Expand | ★★★★ | k (15×15 / 31×31 / 63×63) | ✅ |
 | 範囲内抽出 | `inrange` | `inRange` | Mul → ReduceSum → GreaterOrEqual → LessOrEqual → And → Cast → Expand | ★★★ | lower, upper | ✅ |
 
 > **注**: 適応的閾値の block_size は AveragePool / Conv のカーネルサイズとなるためグラフ定義時に固定。
