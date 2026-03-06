@@ -50,7 +50,7 @@ python -m pytest tests/ -v
 
 テスト方針は[TEST_DESIGN.md](TEST_DESIGN.md)を参照してください。
 
-# Note
+# Model List
 実装済み・実装候補の画像処理は[MODELS.md](MODELS.md)に一覧化しています。
 
 # Usage
