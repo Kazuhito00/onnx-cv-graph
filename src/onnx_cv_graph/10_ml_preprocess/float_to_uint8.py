@@ -27,9 +27,6 @@ class FloatToUint8Op(OnnxGraphOp):
     def output_specs(self) -> List[TensorSpec]:
         return [("output", TensorProto.UINT8, ["N", 3, "H", "W"])]
 
-    @property
-    def output_domain(self) -> str:
-        return "ml"
 
     def build_graph(self) -> GraphProto:
         scale = numpy_helper.from_array(

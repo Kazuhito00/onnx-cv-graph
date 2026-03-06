@@ -108,8 +108,10 @@ HarrisCornerOp = _feature.HarrisCornerOp
 LineExtractOp = _feature.LineExtractOp
 ShiTomasiOp = _feature.ShiTomasiOp
 
-BatchSqueezeOp = _ml_preprocess.BatchSqueezeOp
-BatchUnsqueezeOp = _ml_preprocess.BatchUnsqueezeOp
+BatchSqueezeNchwOp = _ml_preprocess.BatchSqueezeNchwOp
+BatchSqueezeNhwcOp = _ml_preprocess.BatchSqueezeNhwcOp
+BatchUnsqueezeNchwOp = _ml_preprocess.BatchUnsqueezeNchwOp
+BatchUnsqueezeNhwcOp = _ml_preprocess.BatchUnsqueezeNhwcOp
 ChannelMeanSubOp = _ml_preprocess.ChannelMeanSubOp
 ChwToHwcOp = _ml_preprocess.ChwToHwcOp
 FloatToUint8Op = _ml_preprocess.FloatToUint8Op
@@ -144,7 +146,8 @@ __all__ = [
     "AdaptiveThreshGaussianOp", "AdaptiveThreshMeanOp", "InrangeOp",
     "InvBinarizeOp", "SauvolaOp", "ThreshTruncOp", "ThreshTozeroOp", "ThreshTozeroInvOp",
     "HarrisCornerOp", "LineExtractOp", "ShiTomasiOp",
-    "BatchSqueezeOp", "BatchUnsqueezeOp",
+    "BatchSqueezeNchwOp", "BatchSqueezeNhwcOp",
+    "BatchUnsqueezeNchwOp", "BatchUnsqueezeNhwcOp",
     "ChannelMeanSubOp", "ChwToHwcOp", "FloatToUint8Op", "HwcToChwOp",
     "ImageNetNormOp", "LetterboxOp", "NormalizeNeg1Pos1Op",
     "PixelMeanSubOp", "ScaleFrom255Op", "ScaleTo255Op", "Uint8ToFloatOp",
@@ -220,7 +223,9 @@ CATEGORIES = [
         "label_en": "ML Preprocessing",
         "ops": [ScaleTo255Op, ScaleFrom255Op, NormalizeNeg1Pos1Op,
                 ImageNetNormOp, ChannelMeanSubOp, PixelMeanSubOp,
-                HwcToChwOp, ChwToHwcOp, BatchUnsqueezeOp, BatchSqueezeOp,
+                HwcToChwOp, ChwToHwcOp,
+                BatchUnsqueezeNchwOp, BatchUnsqueezeNhwcOp,
+                BatchSqueezeNchwOp, BatchSqueezeNhwcOp,
                 FloatToUint8Op, Uint8ToFloatOp, LetterboxOp],
         "hidden": True,
     },

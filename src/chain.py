@@ -11,8 +11,7 @@ class ChainOp(OnnxGraphOp):
     """複数の OnnxGraphOp を直列合成する.
 
     各 op の build_graph() から得たグラフをプレフィックス付きで結合し、
-    中間出力→次段入力を内部接続する. ドメイン互換性
-    (ops[i].output_domain == ops[i+1].input_domain) を検証する.
+    中間出力→次段入力を内部接続する.
 
     自動エクスポート対象外: variants() は空リストを返す.
     """
@@ -28,34 +27,15 @@ class ChainOp(OnnxGraphOp):
         Raises
         ------
         ValueError
-            op が2つ未満、またはドメイン不一致の場合
+            op が2つ未満の場合
         """
         if len(ops) < 2:
             raise ValueError("ChainOp には2つ以上の op が必要です")
-        # ドメイン互換性検証
-        for i in range(len(ops) - 1):
-            out_dom = ops[i].output_domain
-            in_dom = ops[i + 1].input_domain
-            if out_dom != in_dom:
-                raise ValueError(
-                    f"ドメイン不一致: {ops[i].op_name} の出力ドメイン '{out_dom}' と "
-                    f"{ops[i + 1].op_name} の入力ドメイン '{in_dom}' が一致しません"
-                )
         self._ops = ops
 
     @property
     def op_name(self) -> str:
         return "_".join(op.op_name for op in self._ops)
-
-    @property
-    def input_domain(self) -> str:
-        """先頭 op の入力ドメインを返す."""
-        return self._ops[0].input_domain
-
-    @property
-    def output_domain(self) -> str:
-        """末尾 op の出力ドメインを返す."""
-        return self._ops[-1].output_domain
 
     @property
     def input_specs(self) -> List[TensorSpec]:

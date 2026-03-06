@@ -69,10 +69,3 @@ class TestPixelMeanSubValues:
         out = _run(session, img)
         np.testing.assert_allclose(out, 0.0, atol=1e-3)
 
-
-class TestPixelMeanSubDomain:
-    def test_output_domain(self):
-        from src.onnx_cv_graph import PixelMeanSubOp
-        op = PixelMeanSubOp()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"

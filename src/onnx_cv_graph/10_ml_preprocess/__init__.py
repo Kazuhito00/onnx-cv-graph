@@ -1,7 +1,7 @@
 """ML 前処理パッケージ."""
 
-from .batch_squeeze import BatchSqueezeOp
-from .batch_unsqueeze import BatchUnsqueezeOp
+from .batch_squeeze import BatchSqueezeNchwOp, BatchSqueezeNhwcOp
+from .batch_unsqueeze import BatchUnsqueezeNchwOp, BatchUnsqueezeNhwcOp
 from .channel_mean_sub import ChannelMeanSubOp
 from .chw_to_hwc import ChwToHwcOp
 from .float_to_uint8 import FloatToUint8Op
@@ -15,8 +15,10 @@ from .scale_to_255 import ScaleTo255Op
 from .uint8_to_float import Uint8ToFloatOp
 
 __all__ = [
-    "BatchSqueezeOp",
-    "BatchUnsqueezeOp",
+    "BatchSqueezeNchwOp",
+    "BatchSqueezeNhwcOp",
+    "BatchUnsqueezeNchwOp",
+    "BatchUnsqueezeNhwcOp",
     "ChannelMeanSubOp",
     "ChwToHwcOp",
     "FloatToUint8Op",

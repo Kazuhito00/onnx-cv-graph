@@ -68,10 +68,3 @@ class TestImageNetNormValues:
         # (0 - 0.485) / 0.229 ≈ -2.12 なので 0 未満になる
         assert out.min() < 0.0
 
-
-class TestImageNetNormDomain:
-    def test_output_domain(self):
-        from src.onnx_cv_graph import ImageNetNormOp
-        op = ImageNetNormOp()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"

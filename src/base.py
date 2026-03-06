@@ -24,11 +24,7 @@ class OnnxGraphOp(ABC):
 
     テンソル規約:
         - 画像テンソルは NCHW レイアウト, float32, RGB チャネル順
-        - 画像ドメイン (input_domain/output_domain = "image"):
-          値域は [0, 1]. 超えうる演算では末尾に Clip(0, 1) を入れること.
-        - ML ドメイン (input_domain/output_domain = "ml"):
-          値域は制約なし. ML モデルへの前処理・後処理用.
-        - ChainOp は ops[i].output_domain == ops[i+1].input_domain を検証する
+        - 標準画像 op の値域は [0, 1]. 超えうる演算では末尾に Clip(0, 1) を入れること.
 
     パラメータメタデータ:
         - 推論時パラメータがある場合 param_meta で (min, max, default) を定義する
@@ -62,22 +58,6 @@ class OnnxGraphOp(ABC):
     def output_specs(self) -> List[TensorSpec]:
         """出力テンソルの仕様リスト. チェーン合成時の互換性検証に使用."""
         ...
-
-    @property
-    def input_domain(self) -> str:
-        """入力の値域ドメイン. "image" は [0,1], "ml" は制約なし.
-
-        デフォルトは "image". ML 前処理で [0,255] 等を受け取る op はオーバーライドする.
-        """
-        return "image"
-
-    @property
-    def output_domain(self) -> str:
-        """出力の値域ドメイン. "image" は [0,1], "ml" は制約なし.
-
-        デフォルトは "image". ML 前処理で [0,1] 外を出力する op はオーバーライドする.
-        """
-        return "image"
 
     @property
     def param_meta(self) -> Dict[str, ParamMeta]:

@@ -78,10 +78,3 @@ class TestUint8ToFloatValues:
         expected = img.astype(np.float32) / 255.0
         np.testing.assert_allclose(out, expected, atol=1e-6)
 
-
-class TestUint8ToFloatDomain:
-    def test_domain(self):
-        from src.onnx_cv_graph import Uint8ToFloatOp
-        op = Uint8ToFloatOp()
-        assert op.input_domain == "ml"
-        assert op.output_domain == "image"

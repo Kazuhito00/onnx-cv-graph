@@ -31,9 +31,6 @@ class ChannelMeanSubOp(OnnxGraphOp):
     def output_specs(self) -> List[TensorSpec]:
         return [("output", TensorProto.FLOAT, ["N", 3, "H", "W"])]
 
-    @property
-    def output_domain(self) -> str:
-        return "ml"
 
     def build_graph(self) -> GraphProto:
         # デフォルト: ImageNet 平均 ([0,1] スケール)

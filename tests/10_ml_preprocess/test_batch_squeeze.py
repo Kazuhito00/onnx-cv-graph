@@ -13,7 +13,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CATEGORY = Path(__file__).resolve().parent.name
-MODEL_PATH = PROJECT_ROOT / "models" / CATEGORY / "batch_squeeze.onnx"
+MODEL_PATH = PROJECT_ROOT / "models" / CATEGORY / "batch_squeeze_nchw.onnx"
 
 
 @pytest.fixture(scope="module", autouse=True)

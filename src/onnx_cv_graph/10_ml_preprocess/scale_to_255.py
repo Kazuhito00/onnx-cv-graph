@@ -29,9 +29,6 @@ class ScaleTo255Op(OnnxGraphOp):
     def output_specs(self) -> List[TensorSpec]:
         return [("output", TensorProto.FLOAT, ["N", 3, "H", "W"])]
 
-    @property
-    def output_domain(self) -> str:
-        return "ml"
 
     def build_graph(self) -> GraphProto:
         scale = np.array([255.0], dtype=np.float32)

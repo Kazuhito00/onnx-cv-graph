@@ -67,10 +67,3 @@ class TestChwToHwcValues:
         np.testing.assert_allclose(out[0, :, :, 1], 0.5, atol=1e-6)
         np.testing.assert_allclose(out[0, :, :, 2], 0.9, atol=1e-6)
 
-
-class TestChwToHwcDomain:
-    def test_domain(self):
-        from src.onnx_cv_graph import ChwToHwcOp
-        op = ChwToHwcOp()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"

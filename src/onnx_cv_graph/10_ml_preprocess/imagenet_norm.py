@@ -31,9 +31,6 @@ class ImageNetNormOp(OnnxGraphOp):
     def output_specs(self) -> List[TensorSpec]:
         return [("output", TensorProto.FLOAT, ["N", 3, "H", "W"])]
 
-    @property
-    def output_domain(self) -> str:
-        return "ml"
 
     def build_graph(self) -> GraphProto:
         # ImageNet mean/std (1, 3, 1, 1) でブロードキャスト

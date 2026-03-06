@@ -61,10 +61,3 @@ class TestNormalizeNeg1Pos1Values:
         out = _run(session, img)
         np.testing.assert_allclose(out, img * 2.0 - 1.0, atol=1e-5)
 
-
-class TestNormalizeNeg1Pos1Domain:
-    def test_output_domain(self):
-        from src.onnx_cv_graph import NormalizeNeg1Pos1Op
-        op = NormalizeNeg1Pos1Op()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"

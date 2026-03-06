@@ -61,10 +61,3 @@ class TestChannelMeanSubValues:
         out = _run(session, img)
         assert out.min() < 0.0
 
-
-class TestChannelMeanSubDomain:
-    def test_output_domain(self):
-        from src.onnx_cv_graph import ChannelMeanSubOp
-        op = ChannelMeanSubOp()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"

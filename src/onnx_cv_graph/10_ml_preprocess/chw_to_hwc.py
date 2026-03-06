@@ -26,9 +26,6 @@ class ChwToHwcOp(OnnxGraphOp):
     def output_specs(self) -> List[TensorSpec]:
         return [("output", TensorProto.FLOAT, ["N", "H", "W", 3])]
 
-    @property
-    def output_domain(self) -> str:
-        return "ml"
 
     def build_graph(self) -> GraphProto:
         node = helper.make_node(

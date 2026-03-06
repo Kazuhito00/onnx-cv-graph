@@ -60,10 +60,3 @@ class TestScaleFrom255Values:
         restored = _run(session, scaled)
         np.testing.assert_allclose(restored, img, atol=1e-5)
 
-
-class TestScaleFrom255Domain:
-    def test_output_domain(self):
-        from src.onnx_cv_graph import ScaleFrom255Op
-        op = ScaleFrom255Op()
-        assert op.input_domain == "ml"
-        assert op.output_domain == "image"

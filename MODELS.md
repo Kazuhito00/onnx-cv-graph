@@ -214,27 +214,25 @@ MaxPool のカーネルサイズもグラフ定義時に固定。**3×3 / 5×5**
 推論前の正規化・チャネル変換など、ML モデルへの入力整形に使う処理群。
 ChainOp で合成すれば、画像読み込み→前処理→ML推論 の前段を1つの ONNX モデルにまとめられる。
 
-> **ドメイン**: このカテゴリの op は `output_domain="ml"` (または `input_domain="ml"`) を持つ。
-> 出力が [0,1] 範囲外になるため、画像表示用アプリでは `hidden: true` で非表示にしている。
-> ChainOp でドメイン互換性が検証される (`ops[i].output_domain == ops[i+1].input_domain`)。
-
-| 処理 | 実装名 | 用途 | ONNX ノード構成 | 難易度 | ドメイン | 状態 |
-|------|--------|------|----------------|--------|---------|------|
-| ImageNet 正規化 | `imagenet_norm` | torchvision `Normalize(mean, std)` | Sub(mean) → Div(std) | ★ | image→ml | ✅ |
-| [0,1]→[0,255] スケーリング | `scale_to_255` | uint8 出力相当への変換 | Mul(255) | ★ | image→ml | ✅ |
-| [0,255]→[0,1] スケーリング | `scale_from_255` | uint8 入力の正規化 | Div(255) | ★ | ml→image | ✅ |
-| [-1,1] 正規化 | `normalize_neg1_pos1` | GAN / CLIP 等の入力 | Mul(2) → Sub(1) | ★ | image→ml | ✅ |
-| チャネルごと平均減算 | `channel_mean_sub` | Caffe 系モデルの前処理 | Sub(mean_per_channel) | ★ | image→ml | ✅ |
-| ピクセル平均減算 | `pixel_mean_sub` | detectron2/Caffe 系 `*255 - [123.675, 116.28, 103.53]` | Mul(255) → Sub(pixel_mean) | ★ | image→ml | ✅ |
-| リサイズ + パディング (letterbox) | `letterbox` | YOLO 等の入力整形 | Shape → Gather → Cast → Div → Min → Concat → Reshape → Gather → Cast → Sub → Div → Floor → Cast → Reshape → Concat → Pad | ★★★★★ | image→image | ✅ |
-| センタークロップ | `center_crop` | ViT / ResNet 等の推論入力 | Shape → Gather → Cast → Mul → Floor → Sub → Div → Cast → Add → Reshape → Concat → Slice | ★★★★★ | image→image | ✅ |
-| ランダムクロップ相当 (固定オフセット) | | テスト時の再現性あるクロップ | Slice | ★ | image→image |  |
-| HWC→CHW 変換 | `hwc_to_chw` | NumPy/PIL 画像→テンソル変換 | Transpose (0,3,1,2) | ★ | ml→image | ✅ |
-| CHW→HWC 変換 | `chw_to_hwc` | テンソル→画像表示用 | Transpose (0,2,3,1) | ★ | image→ml | ✅ |
-| float32→uint8 量子化 | `float_to_uint8` | 後処理での画像出力 | Mul(255) → Clip(0,255) → Round → Cast(uint8) | ★★ | image→ml | ✅ |
-| uint8→float32 変換 | `uint8_to_float` | uint8 画像の正規化 | Cast(float32) → Div(255) | ★ | ml→image | ✅ |
-| バッチ次元追加 | `batch_unsqueeze` | 単一画像→バッチ入力 | Unsqueeze (axis=0) | ★ | image→image | ✅ |
-| バッチ次元除去 | `batch_squeeze` | バッチ出力→単一画像 | Squeeze (axis=0) | ★ | image→image | ✅ |
+| 処理 | 実装名 | 用途 | ONNX ノード構成 | 難易度 | 状態 |
+|------|--------|------|----------------|--------|---------|
+| ImageNet 正規化 | `imagenet_norm` | torchvision `Normalize(mean, std)` | Sub(mean) → Div(std) | ★ | ✅ |
+| [0,1]→[0,255] スケーリング | `scale_to_255` | uint8 出力相当への変換 | Mul(255) | ★ | ✅ |
+| [0,255]→[0,1] スケーリング | `scale_from_255` | uint8 入力の正規化 | Div(255) | ★ | ✅ |
+| [-1,1] 正規化 | `normalize_neg1_pos1` | GAN / CLIP 等の入力 | Mul(2) → Sub(1) | ★ | ✅ |
+| チャネルごと平均減算 | `channel_mean_sub` | Caffe 系モデルの前処理 | Sub(mean_per_channel) | ★ | ✅ |
+| ピクセル平均減算 | `pixel_mean_sub` | detectron2/Caffe 系 `*255 - [123.675, 116.28, 103.53]` | Mul(255) → Sub(pixel_mean) | ★ | ✅ |
+| リサイズ + パディング (letterbox) | `letterbox` | YOLO 等の入力整形 | Shape → Gather → Cast → Div → Min → Concat → Reshape → Gather → Cast → Sub → Div → Floor → Cast → Reshape → Concat → Pad | ★★★★★ | ✅ |
+| センタークロップ | `center_crop` | ViT / ResNet 等の推論入力 | Shape → Gather → Cast → Mul → Floor → Sub → Div → Cast → Add → Reshape → Concat → Slice | ★★★★★ | ✅ |
+| ランダムクロップ相当 (固定オフセット) | | テスト時の再現性あるクロップ | Slice | ★ |  |
+| HWC→CHW 変換 | `hwc_to_chw` | NumPy/PIL 画像→テンソル変換 | Transpose (0,3,1,2) | ★ | ✅ |
+| CHW→HWC 変換 | `chw_to_hwc` | テンソル→画像表示用 | Transpose (0,2,3,1) | ★ | ✅ |
+| float32→uint8 量子化 | `float_to_uint8` | 後処理での画像出力 | Mul(255) → Clip(0,255) → Round → Cast(uint8) | ★★ | ✅ |
+| uint8→float32 変換 | `uint8_to_float` | uint8 画像の正規化 | Cast(float32) → Div(255) | ★ | ✅ |
+| バッチ次元追加 (NCHW) | `batch_unsqueeze_nchw` | (3,H,W) → (1,3,H,W) | Unsqueeze (axis=0) | ★ | ✅ |
+| バッチ次元追加 (NHWC) | `batch_unsqueeze_nhwc` | (H,W,3) → (1,H,W,3) | Unsqueeze (axis=0) | ★ | ✅ |
+| バッチ次元除去 (NCHW) | `batch_squeeze_nchw` | (1,3,H,W) → (3,H,W) | Squeeze (axis=0) | ★ | ✅ |
+| バッチ次元除去 (NHWC) | `batch_squeeze_nhwc` | (1,H,W,3) → (H,W,3) | Squeeze (axis=0) | ★ | ✅ |
 
 ---
 

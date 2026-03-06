@@ -105,10 +105,3 @@ class TestFloatToUint8Values:
         # 量子化誤差: 最大 0.5/255 ≈ 0.002
         np.testing.assert_allclose(restored, img, atol=0.003)
 
-
-class TestFloatToUint8Domain:
-    def test_domain(self):
-        from src.onnx_cv_graph import FloatToUint8Op
-        op = FloatToUint8Op()
-        assert op.input_domain == "image"
-        assert op.output_domain == "ml"
