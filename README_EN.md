@@ -5,7 +5,7 @@
 An experimental repository for implementing image processing using ONNX graphs.<br>
 Each operation is exported as an ONNX file and included in the repository.
 
-<img width="1238" height="787" alt="image" src="https://github.com/user-attachments/assets/2d5c6039-be16-406a-8c7b-05e398d128ae" />
+<img width="1238" height="787" alt="image" src="https://github.com/user-attachments/assets/da64d9aa-1f0e-443c-b53f-63046286d4b3" />
 
 # Web Demo
 An inference demo using the exported ONNX models is available at the following page.<br>
@@ -109,5 +109,6 @@ onnx-cv-graph is under [Apache-2.0 license](LICENSE).<br>
 
 # License (Image)
 The sample image uses "[猫背が治った！](https://www.pakutaso.com/20260129013post-56289.html)" from [PAKUTASO](https://www.pakutaso.com/).
+
 
 
