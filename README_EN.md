@@ -24,7 +24,7 @@ This repository aims to explore the following:
 - Leveraging ONNX Runtime for GPU/WebGL/TensorRT/DirectML offloading
 - Combining multiple image processing operations into a single distributable ONNX model
 
-# Requirement
+# Requirements
 ```
 Python 3.10 or later
 
@@ -109,4 +109,5 @@ onnx-cv-graph is under [Apache-2.0 license](LICENSE).<br>
 
 # License (Image)
 The sample image uses "[猫背が治った！](https://www.pakutaso.com/20260129013post-56289.html)" from [PAKUTASO](https://www.pakutaso.com/).
+
 
