@@ -1,6 +1,6 @@
-# ONNX オペレーションで実現可能な画像処理検討
+# ONNX オペレータで実現可能な画像処理検討
 
-ONNX opset 17 のオペレーターのみで実現可能な OpenCV 相当の画像処理を検討・列挙する。
+ONNX opset 17 のオペレータのみで実現可能な OpenCV 相当の画像処理を検討・列挙する。
 
 凡例:
 - 難易度
@@ -271,4 +271,5 @@ ChainOp で合成すれば、画像読み込み→前処理→ML推論 の前段
 | オプティカルフロー | `calcOpticalFlowFarneback` | 反復的な最適化が必要 |
 | 背景差分 | `createBackgroundSubtractorMOG2` | 統計モデルの逐次更新が必要 |
 | カラー転写 | `seamlessClone` | ポアソン方程式の反復求解が必要 |
+
 
