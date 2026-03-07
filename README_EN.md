@@ -1,6 +1,6 @@
-# onnx-cv-graph
+[[Japanese](README.md)/[English](README_EN.md)]
 
-**[日本語](README.md)**
+# onnx-cv-graph
 
 An experimental repository for implementing image processing using ONNX graphs.<br>
 Each operation is exported as an ONNX file and included in the repository.
@@ -109,3 +109,4 @@ onnx-cv-graph is under [Apache-2.0 license](LICENSE).<br>
 
 # License (Image)
 The sample image uses "[猫背が治った！](https://www.pakutaso.com/20260129013post-56289.html)" from [PAKUTASO](https://www.pakutaso.com/).
+
