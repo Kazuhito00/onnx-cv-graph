@@ -1,6 +1,6 @@
-# onnx-cv-graph
+[[Japanese](README.md)/[English](README_EN.md)]
 
-**[English](README_EN.md)**
+# onnx-cv-graph
 
 ONNXグラフによる画像処理実装を検証する実験用リポジトリです。<br>
 各処理はONNXエクスポートしたものを同梱しています。
