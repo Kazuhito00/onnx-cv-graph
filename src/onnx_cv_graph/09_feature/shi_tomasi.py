@@ -51,11 +51,10 @@ class ShiTomasiOp(OnnxGraphOp):
         axes = np.array([1], dtype=np.int64)
         axes_init = numpy_helper.from_array(axes, name="axes")
 
-        # Sobel カーネル
+        # Sobel カーネル: X,Y を統合 (2, 1, 3, 3)
         sx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
         sy = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
-        sx_init = numpy_helper.from_array(sx, name="sobel_x")
-        sy_init = numpy_helper.from_array(sy, name="sobel_y")
+        sxy_init = numpy_helper.from_array(np.concatenate([sx, sy], axis=0), name="sobel_xy")
 
         sobel_pads = np.array([0, 0, 1, 1, 0, 0, 1, 1], dtype=np.int64)
         sobel_pads_init = numpy_helper.from_array(sobel_pads, name="sobel_pads")
@@ -73,7 +72,7 @@ class ShiTomasiOp(OnnxGraphOp):
         half_init = numpy_helper.from_array(half, name="half")
 
         initializers = [
-            weights_init, axes_init, sx_init, sy_init, sobel_pads_init,
+            weights_init, axes_init, sxy_init, sobel_pads_init,
             expand_shape_init, zero_init, one_init, eps_init, half_init,
         ]
 
@@ -83,10 +82,10 @@ class ShiTomasiOp(OnnxGraphOp):
         nodes.append(helper.make_node("Mul", ["input", "luma_weights"], ["weighted"]))
         nodes.append(helper.make_node("ReduceSum", ["weighted", "axes"], ["gray"], keepdims=1))
 
-        # 2. Sobel 微分
+        # 2. Sobel 微分 (統合 Conv → Split)
         nodes.append(helper.make_node("Pad", ["gray", "sobel_pads"], ["gray_padded"], mode="reflect"))
-        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_x"], ["Ix"]))
-        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_y"], ["Iy"]))
+        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_xy"], ["Ixy"]))
+        nodes.append(helper.make_node("Split", ["Ixy"], ["Ix", "Iy"], axis=1))
 
         # 3. 構造テンソル
         nodes.append(helper.make_node("Mul", ["Ix", "Ix"], ["Ix2"]))

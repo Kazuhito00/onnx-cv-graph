@@ -41,11 +41,11 @@ class SobelOp(OnnxGraphOp):
         axes = np.array([1], dtype=np.int64)
         axes_init = numpy_helper.from_array(axes, name="axes")
 
-        # Sobel カーネル (1, 1, 3, 3)
+        # Sobel カーネル: X,Y を統合 (2, 1, 3, 3)
         kx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
         ky = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
-        kx_init = numpy_helper.from_array(kx, name="kx")
-        ky_init = numpy_helper.from_array(ky, name="ky")
+        kxy = np.concatenate([kx, ky], axis=0)
+        kxy_init = numpy_helper.from_array(kxy, name="kxy")
 
         pads = np.array([0, 0, 1, 1, 0, 0, 1, 1], dtype=np.int64)
         pads_init = numpy_helper.from_array(pads, name="pads")
@@ -62,9 +62,9 @@ class SobelOp(OnnxGraphOp):
             helper.make_node("ReduceSum", ["weighted", "axes"], ["gray"], keepdims=1),
             # Pad
             helper.make_node("Pad", ["gray", "pads"], ["padded"], mode="reflect"),
-            # Sobel X, Y
-            helper.make_node("Conv", ["padded", "kx"], ["gx"]),
-            helper.make_node("Conv", ["padded", "ky"], ["gy"]),
+            # Sobel X, Y (統合 Conv)
+            helper.make_node("Conv", ["padded", "kxy"], ["gxy"]),
+            helper.make_node("Split", ["gxy"], ["gx", "gy"], axis=1),
             # |Gx| + |Gy|
             helper.make_node("Abs", ["gx"], ["abs_gx"]),
             helper.make_node("Abs", ["gy"], ["abs_gy"]),
@@ -79,6 +79,6 @@ class SobelOp(OnnxGraphOp):
 
         return helper.make_graph(
             nodes, self.op_name, [input_vi], [output_vi],
-            initializer=[luma_init, axes_init, kx_init, ky_init, pads_init,
+            initializer=[luma_init, axes_init, kxy_init, pads_init,
                          zero_init, one_init, expand_init],
         )

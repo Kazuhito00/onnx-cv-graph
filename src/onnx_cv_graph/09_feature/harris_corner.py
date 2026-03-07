@@ -66,11 +66,9 @@ class HarrisCornerOp(OnnxGraphOp):
         axes = np.array([1], dtype=np.int64)
         axes_init = numpy_helper.from_array(axes, name="axes")
 
-        # Sobel カーネル
-        sx = _sobel_kernel_x()
-        sy = _sobel_kernel_y()
-        sx_init = numpy_helper.from_array(sx, name="sobel_x")
-        sy_init = numpy_helper.from_array(sy, name="sobel_y")
+        # Sobel カーネル: X,Y を統合 (2, 1, 3, 3)
+        sxy = np.concatenate([_sobel_kernel_x(), _sobel_kernel_y()], axis=0)
+        sxy_init = numpy_helper.from_array(sxy, name="sobel_xy")
 
         # Sobel 用 reflect パディング
         sobel_pads = np.array([0, 0, 1, 1, 0, 0, 1, 1], dtype=np.int64)
@@ -91,7 +89,7 @@ class HarrisCornerOp(OnnxGraphOp):
         eps_init = numpy_helper.from_array(eps, name="eps")
 
         initializers = [
-            weights_init, axes_init, sx_init, sy_init, sobel_pads_init,
+            weights_init, axes_init, sxy_init, sobel_pads_init,
             expand_shape_init, zero_init, one_init, eps_init,
         ]
 
@@ -101,10 +99,10 @@ class HarrisCornerOp(OnnxGraphOp):
         nodes.append(helper.make_node("Mul", ["input", "luma_weights"], ["weighted"]))
         nodes.append(helper.make_node("ReduceSum", ["weighted", "axes"], ["gray"], keepdims=1))
 
-        # 2. Sobel 微分: Pad(reflect) → Conv
+        # 2. Sobel 微分: Pad(reflect) → Conv(統合) → Split
         nodes.append(helper.make_node("Pad", ["gray", "sobel_pads"], ["gray_padded"], mode="reflect"))
-        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_x"], ["Ix"]))
-        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_y"], ["Iy"]))
+        nodes.append(helper.make_node("Conv", ["gray_padded", "sobel_xy"], ["Ixy"]))
+        nodes.append(helper.make_node("Split", ["Ixy"], ["Ix", "Iy"], axis=1))
 
         # 3. 構造テンソル要素: Ix², Iy², Ix*Iy
         nodes.append(helper.make_node("Mul", ["Ix", "Ix"], ["Ix2"]))

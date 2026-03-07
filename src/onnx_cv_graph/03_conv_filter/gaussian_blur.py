@@ -55,16 +55,20 @@ class GaussianBlurOp(OnnxGraphOp):
         k = self._kernel_size
         pad = k // 2
 
-        g2d = _gaussian_kernel_2d(k)
-        kernel = np.stack([g2d] * 3).reshape(3, 1, k, k)
-        kernel_init = numpy_helper.from_array(kernel, name="kernel")
+        # 分離フィルタ: Conv(k,k) → Conv(k,1) + Conv(1,k)
+        k1d = _gaussian_kernel_1d(k)
+        kernel_v = np.tile(k1d.reshape(1, 1, k, 1), (3, 1, 1, 1))
+        kernel_h = np.tile(k1d.reshape(1, 1, 1, k), (3, 1, 1, 1))
+        kv_init = numpy_helper.from_array(kernel_v, name="kernel_v")
+        kh_init = numpy_helper.from_array(kernel_h, name="kernel_h")
 
         pads = np.array([0, 0, pad, pad, 0, 0, pad, pad], dtype=np.int64)
         pads_init = numpy_helper.from_array(pads, name="pads")
 
         nodes = [
             helper.make_node("Pad", ["input", "pads"], ["padded"], mode="reflect"),
-            helper.make_node("Conv", ["padded", "kernel"], ["output"], group=3),
+            helper.make_node("Conv", ["padded", "kernel_v"], ["v_blurred"], group=3),
+            helper.make_node("Conv", ["v_blurred", "kernel_h"], ["output"], group=3),
         ]
 
         input_vi = helper.make_tensor_value_info("input", TensorProto.FLOAT, ["N", 3, "H", "W"])
@@ -72,5 +76,5 @@ class GaussianBlurOp(OnnxGraphOp):
 
         return helper.make_graph(
             nodes, self.op_name, [input_vi], [output_vi],
-            initializer=[kernel_init, pads_init],
+            initializer=[kv_init, kh_init, pads_init],
         )

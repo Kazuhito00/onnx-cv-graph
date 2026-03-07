@@ -500,22 +500,43 @@ function onParamChange() {
   }, 30);
 }
 
+const BENCH_RUNS = 5;
+let _benchTimer = null;
+
 async function runAndDisplay() {
   try {
     const params = getParamValues();
     const { output, elapsed } = await runInference(currentSession, imgTensor, params);
     displayResult(output, document.getElementById("after"));
     if (isFirstRun) {
-      document.getElementById("timing").textContent = "処理時間: —";
+      document.getElementById("timing").textContent = "処理時間: 計測中...";
       isFirstRun = false;
-    } else {
-      document.getElementById("timing").textContent = `処理時間: ${elapsed.toFixed(2)} ms`;
     }
+    // 初回描画後にベンチマーク開始
+    startBench();
     setStatus("");
   } catch (e) {
     setStatus(`推論エラー: ${e.message}`);
     console.error(e);
   }
+}
+
+function startBench() {
+  if (_benchTimer) clearTimeout(_benchTimer);
+  _benchTimer = setTimeout(() => runBench(), 50);
+}
+
+async function runBench() {
+  if (!currentSession || !imgTensor) return;
+  const params = getParamValues();
+  const times = [];
+  for (let i = 0; i < BENCH_RUNS; i++) {
+    const { elapsed } = await runInference(currentSession, imgTensor, params);
+    times.push(elapsed);
+  }
+  const avg = times.reduce((a, b) => a + b, 0) / times.length;
+  document.getElementById("timing").textContent =
+    `処理時間: ${avg.toFixed(2)} ms (${BENCH_RUNS}回平均)`;
 }
 
 // --- ファイルアップロード ---

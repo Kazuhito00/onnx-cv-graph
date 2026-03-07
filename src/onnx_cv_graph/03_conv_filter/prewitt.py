@@ -42,8 +42,8 @@ class PrewittOp(OnnxGraphOp):
 
         kx = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
         ky = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]], dtype=np.float32).reshape(1, 1, 3, 3)
-        kx_init = numpy_helper.from_array(kx, name="kx")
-        ky_init = numpy_helper.from_array(ky, name="ky")
+        kxy = np.concatenate([kx, ky], axis=0)
+        kxy_init = numpy_helper.from_array(kxy, name="kxy")
 
         pads = np.array([0, 0, 1, 1, 0, 0, 1, 1], dtype=np.int64)
         pads_init = numpy_helper.from_array(pads, name="pads")
@@ -60,8 +60,8 @@ class PrewittOp(OnnxGraphOp):
             helper.make_node("Mul", ["input", "luma"], ["weighted"]),
             helper.make_node("ReduceSum", ["weighted", "axes"], ["gray"], keepdims=1),
             helper.make_node("Pad", ["gray", "pads"], ["padded"], mode="reflect"),
-            helper.make_node("Conv", ["padded", "kx"], ["gx"]),
-            helper.make_node("Conv", ["padded", "ky"], ["gy"]),
+            helper.make_node("Conv", ["padded", "kxy"], ["gxy"]),
+            helper.make_node("Split", ["gxy"], ["gx", "gy"], axis=1),
             helper.make_node("Abs", ["gx"], ["abs_gx"]),
             helper.make_node("Abs", ["gy"], ["abs_gy"]),
             helper.make_node("Add", ["abs_gx", "abs_gy"], ["edge"]),
@@ -75,6 +75,6 @@ class PrewittOp(OnnxGraphOp):
 
         return helper.make_graph(
             nodes, self.op_name, [input_vi], [output_vi],
-            initializer=[luma_init, axes_init, kx_init, ky_init, pads_init,
+            initializer=[luma_init, axes_init, kxy_init, pads_init,
                          zero_init, one_init, norm_init, expand_init],
         )

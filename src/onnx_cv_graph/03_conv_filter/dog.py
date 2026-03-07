@@ -11,7 +11,7 @@ from onnx import GraphProto, TensorProto, helper, numpy_helper
 
 from src.base import OnnxGraphOp, TensorSpec
 
-from .gaussian_blur import _gaussian_kernel_2d
+from .gaussian_blur import _gaussian_kernel_1d
 
 
 class DogOp(OnnxGraphOp):
@@ -52,11 +52,13 @@ class DogOp(OnnxGraphOp):
         axes = np.array([1], dtype=np.int64)
         axes_init = numpy_helper.from_array(axes, name="axes")
 
-        # ガウシアンカーネル (1ch 用: 1, 1, k, k)
-        g1 = _gaussian_kernel_2d(k1).reshape(1, 1, k1, k1)
-        g2 = _gaussian_kernel_2d(k2).reshape(1, 1, k2, k2)
-        g1_init = numpy_helper.from_array(g1, name="kernel1")
-        g2_init = numpy_helper.from_array(g2, name="kernel2")
+        # 分離ガウシアンカーネル (1ch 用)
+        k1d_1 = _gaussian_kernel_1d(k1)
+        k1d_2 = _gaussian_kernel_1d(k2)
+        g1v_init = numpy_helper.from_array(k1d_1.reshape(1, 1, k1, 1), name="kernel1_v")
+        g1h_init = numpy_helper.from_array(k1d_1.reshape(1, 1, 1, k1), name="kernel1_h")
+        g2v_init = numpy_helper.from_array(k1d_2.reshape(1, 1, k2, 1), name="kernel2_v")
+        g2h_init = numpy_helper.from_array(k1d_2.reshape(1, 1, 1, k2), name="kernel2_h")
 
         # パディング
         pads1 = np.array([0, 0, pad1, pad1, 0, 0, pad1, pad1], dtype=np.int64)
@@ -80,12 +82,14 @@ class DogOp(OnnxGraphOp):
             # グレースケール化: (N,3,H,W) → (N,1,H,W)
             helper.make_node("Mul", ["input", "luma"], ["weighted"]),
             helper.make_node("ReduceSum", ["weighted", "axes"], ["gray"], keepdims=1),
-            # σ小 のガウシアンぼかし
+            # σ小 のガウシアンぼかし (分離フィルタ)
             helper.make_node("Pad", ["gray", "pads1"], ["padded1"], mode="reflect"),
-            helper.make_node("Conv", ["padded1", "kernel1"], ["blur1"]),
-            # σ大 のガウシアンぼかし
+            helper.make_node("Conv", ["padded1", "kernel1_v"], ["blur1_v"]),
+            helper.make_node("Conv", ["blur1_v", "kernel1_h"], ["blur1"]),
+            # σ大 のガウシアンぼかし (分離フィルタ)
             helper.make_node("Pad", ["gray", "pads2"], ["padded2"], mode="reflect"),
-            helper.make_node("Conv", ["padded2", "kernel2"], ["blur2"]),
+            helper.make_node("Conv", ["padded2", "kernel2_v"], ["blur2_v"]),
+            helper.make_node("Conv", ["blur2_v", "kernel2_h"], ["blur2"]),
             # 差分 → Abs → 正規化
             helper.make_node("Sub", ["blur1", "blur2"], ["diff"]),
             helper.make_node("Abs", ["diff"], ["abs_diff"]),
@@ -105,7 +109,8 @@ class DogOp(OnnxGraphOp):
         return helper.make_graph(
             nodes, self.op_name, [input_vi], [output_vi],
             initializer=[
-                luma_init, axes_init, g1_init, g2_init,
+                luma_init, axes_init,
+                g1v_init, g1h_init, g2v_init, g2h_init,
                 pads1_init, pads2_init, div_init,
                 zero_init, one_init, expand_init,
             ],

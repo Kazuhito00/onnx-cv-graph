@@ -12,7 +12,7 @@ import numpy as np
 from onnx import GraphProto, TensorProto, helper, numpy_helper
 
 from src.base import OnnxGraphOp, ParamMeta, TensorSpec
-from .gaussian_blur import _gaussian_kernel_2d
+from .gaussian_blur import _gaussian_kernel_1d
 
 
 class UnsharpMaskOp(OnnxGraphOp):
@@ -51,9 +51,11 @@ class UnsharpMaskOp(OnnxGraphOp):
         k = self._kernel_size
         pad = k // 2
 
-        g2d = _gaussian_kernel_2d(k)
-        kernel = np.stack([g2d] * 3).reshape(3, 1, k, k)
-        kernel_init = numpy_helper.from_array(kernel, name="kernel")
+        k1d = _gaussian_kernel_1d(k)
+        kernel_v = np.tile(k1d.reshape(1, 1, k, 1), (3, 1, 1, 1))
+        kernel_h = np.tile(k1d.reshape(1, 1, 1, k), (3, 1, 1, 1))
+        kv_init = numpy_helper.from_array(kernel_v, name="kernel_v")
+        kh_init = numpy_helper.from_array(kernel_h, name="kernel_h")
 
         pads = np.array([0, 0, pad, pad, 0, 0, pad, pad], dtype=np.int64)
         pads_init = numpy_helper.from_array(pads, name="pads")
@@ -63,9 +65,10 @@ class UnsharpMaskOp(OnnxGraphOp):
         one_init = numpy_helper.from_array(one, name="one")
 
         nodes = [
-            # ガウシアンぼかし
+            # ガウシアンぼかし (分離フィルタ)
             helper.make_node("Pad", ["input", "pads"], ["padded"], mode="reflect"),
-            helper.make_node("Conv", ["padded", "kernel"], ["blurred"], group=3),
+            helper.make_node("Conv", ["padded", "kernel_v"], ["v_blurred"], group=3),
+            helper.make_node("Conv", ["v_blurred", "kernel_h"], ["blurred"], group=3),
             # detail = input - blurred
             helper.make_node("Sub", ["input", "blurred"], ["detail"]),
             # detail * amount
@@ -82,5 +85,5 @@ class UnsharpMaskOp(OnnxGraphOp):
 
         return helper.make_graph(
             nodes, self.op_name, [input_vi, amount_vi], [output_vi],
-            initializer=[kernel_init, pads_init, zero_init, one_init],
+            initializer=[kv_init, kh_init, pads_init, zero_init, one_init],
         )

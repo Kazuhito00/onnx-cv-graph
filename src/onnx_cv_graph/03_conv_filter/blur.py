@@ -43,38 +43,25 @@ class BlurOp(OnnxGraphOp):
         k = self._kernel_size
         pad = k // 2
 
-        # 平均カーネル: (3, 1, k, k) — depthwise conv 用 (group=3)
-        kernel = np.ones((3, 1, k, k), dtype=np.float32) / (k * k)
-        kernel_init = numpy_helper.from_array(kernel, name="kernel")
+        # 分離フィルタ: box(k,k) → box(k,1) + box(1,k)
+        k1d_v = np.ones((3, 1, k, 1), dtype=np.float32) / k
+        k1d_h = np.ones((3, 1, 1, k), dtype=np.float32) / k
+        kv_init = numpy_helper.from_array(k1d_v, name="kernel_v")
+        kh_init = numpy_helper.from_array(k1d_h, name="kernel_h")
 
-        # Pad: reflect パディングで境界を処理
-        # pads 形式: [N_begin, C_begin, H_begin, W_begin, N_end, C_end, H_end, W_end]
         pads = np.array([0, 0, pad, pad, 0, 0, pad, pad], dtype=np.int64)
         pads_init = numpy_helper.from_array(pads, name="pads")
 
-        pad_node = helper.make_node(
-            "Pad",
-            inputs=["input", "pads"],
-            outputs=["padded"],
-            mode="reflect",
-        )
-
-        # Conv: group=3 で RGB チャネル独立に畳み込み
-        conv_node = helper.make_node(
-            "Conv",
-            inputs=["padded", "kernel"],
-            outputs=["output"],
-            group=3,
-        )
+        nodes = [
+            helper.make_node("Pad", ["input", "pads"], ["padded"], mode="reflect"),
+            helper.make_node("Conv", ["padded", "kernel_v"], ["v_blurred"], group=3),
+            helper.make_node("Conv", ["v_blurred", "kernel_h"], ["output"], group=3),
+        ]
 
         input_vi = helper.make_tensor_value_info("input", TensorProto.FLOAT, ["N", 3, "H", "W"])
         output_vi = helper.make_tensor_value_info("output", TensorProto.FLOAT, ["N", 3, "H", "W"])
 
-        graph = helper.make_graph(
-            [pad_node, conv_node],
-            self.op_name,
-            [input_vi],
-            [output_vi],
-            initializer=[kernel_init, pads_init],
+        return helper.make_graph(
+            nodes, self.op_name, [input_vi], [output_vi],
+            initializer=[kv_init, kh_init, pads_init],
         )
-        return graph
