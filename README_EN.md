@@ -12,6 +12,12 @@ An inference demo using the exported ONNX models is available at the following p
 *See below for Python inference demo.
 * https://kazuhito00.github.io/onnx-cv-graph/example_app.html
 
+You can also perform image processing using onnx-cv-graph through a visual node editor available in the following repository.<br>
+An experimental feature to export the constructed graph as a single ONNX file is also implemented.
+
+* Repository: https://github.com/Kazuhito00/onnx-cv-graph-node-editor
+* Web Demo: https://kazuhito00.github.io/onnx-cv-graph-node-editor<br><img width="50%" alt="image" src="https://github.com/user-attachments/assets/c75f1cb7-8b6d-4165-a809-21e3d3de1b19" />
+
 # Features
 - Image processing implemented entirely using ONNX operators
 - Each operation is exported as an ONNX file and included in the repository
@@ -109,6 +115,7 @@ onnx-cv-graph is under [Apache-2.0 license](LICENSE).<br>
 
 # License (Image)
 The sample image uses "[猫背が治った！](https://www.pakutaso.com/20260129013post-56289.html)" from [PAKUTASO](https://www.pakutaso.com/).
+
 
 
 
