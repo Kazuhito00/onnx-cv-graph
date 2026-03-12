@@ -13,6 +13,7 @@ from .rotate import Rotate90Op, Rotate180Op, Rotate270Op
 from .rotate_arbitrary import RotateArbitraryOp
 from .affine import AffineOp
 from .perspective import PerspectiveOp
+from .rotate_3d import Rotate3dOp, Rotate3dPadColorOp
 
 __all__ = [
     "AffineOp",
@@ -28,6 +29,8 @@ __all__ = [
     "VFlipOp",
     "ResizeOp",
     "ResizeToOp",
+    "Rotate3dOp",
+    "Rotate3dPadColorOp",
     "Rotate90Op",
     "Rotate180Op",
     "Rotate270Op",

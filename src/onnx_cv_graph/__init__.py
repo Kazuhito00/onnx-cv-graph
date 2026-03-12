@@ -81,6 +81,8 @@ ResizeToOp = _geometric.ResizeToOp
 Rotate90Op = _geometric.Rotate90Op
 Rotate180Op = _geometric.Rotate180Op
 Rotate270Op = _geometric.Rotate270Op
+Rotate3dOp = _geometric.Rotate3dOp
+Rotate3dPadColorOp = _geometric.Rotate3dPadColorOp
 RotateArbitraryOp = _geometric.RotateArbitraryOp
 
 L1NormOp = _normalization.L1NormOp
@@ -140,7 +142,7 @@ __all__ = [
     "AffineOp", "CenterCropOp", "CropOp", "HFlipOp", "HVFlipOp", "PaddingReflectOp", "PaddingColorOp",
     "PerspectiveOp", "PyrDownOp", "PyrUpOp", "VFlipOp",
     "ResizeOp", "ResizeToOp",
-    "Rotate90Op", "Rotate180Op", "Rotate270Op", "RotateArbitraryOp",
+    "Rotate3dOp", "Rotate3dPadColorOp", "Rotate90Op", "Rotate180Op", "Rotate270Op", "RotateArbitraryOp",
     "L1NormOp", "L1NormChOp", "L2NormOp", "L2NormChOp", "LcnOp", "MinMaxNormOp",
     "AlphaBlendOp", "MaskCompositeOp", "OverlayOp", "WeightedAddOp",
     "AdaptiveThreshGaussianOp", "AdaptiveThreshMeanOp", "InrangeOp",
@@ -196,7 +198,7 @@ CATEGORIES = [
         "ops": [ResizeOp, ResizeToOp, HFlipOp, VFlipOp, HVFlipOp,
                 Rotate90Op, Rotate180Op, Rotate270Op, RotateArbitraryOp,
                 CropOp, CenterCropOp, PaddingReflectOp, PaddingColorOp, PyrDownOp, PyrUpOp,
-                AffineOp, PerspectiveOp],
+                AffineOp, PerspectiveOp, Rotate3dOp, Rotate3dPadColorOp],
     },
     {
         "id": "06_normalization",
