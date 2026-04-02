@@ -5,7 +5,7 @@
 ONNXグラフによる画像処理実装を検証する実験用リポジトリです。<br>
 各処理はONNXエクスポートしたものを同梱しています。
 
-<img width="1238" height="787" alt="image" src="https://github.com/user-attachments/assets/da64d9aa-1f0e-443c-b53f-63046286d4b3" />
+<img width="1556" height="811" alt="image" src="https://github.com/user-attachments/assets/2deadb48-c412-4d1b-9c1c-2306e602aff1" />
 
 # Web Demo
 エクスポートされたONNXを用いた推論デモは以下のページから確認できます。<br>
